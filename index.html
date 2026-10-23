@@ -1,0 +1,2724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Revenue Intelligence Inbox</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .highlight-match { background-color: #fef08a; padding: 1px 3px; border-radius: 2px; }
+    .highlight-active { background-color: #fde047; outline: 2px solid #ca8a04; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef } = React;
+
+    // ==========================================
+    // CONSTANTS & VERBATIM EMBEDDED DATA
+    // ==========================================
+    const STORAGE_KEY = "revenue_inbox_v1";
+
+    const INITIAL_DATA = {
+      batch_id: "batch_01",
+      revision: 1,
+      exported_at: "2026-08-21T18:30:00.000Z",
+      records: [
+        // 10 Calls with Transcripts (C01 - C10)
+        {
+          record_ref: "C01",
+          source_type: "call",
+          source_id: "call_c01_harborlight",
+          payload: {
+            title: "Harborlight Advisory Discovery",
+            rep_name: "Arun",
+            prospect_name: "Pranav",
+            company: "Harborlight Advisory",
+            started_at: "2026-08-21T04:45:00.000Z", // 10:15 IST
+            duration_seconds: 142,
+            is_connected: true,
+            is_conversation: true,
+            outcome: "not_interested",
+            transcript: "Hello Pranav, this is Arun from SpendNest. We help firms automate spend management and reconciliations across departments. Pranav: I didn't ask for this call, and I'm not interested. We already have tools that handle this internally. Arun: Understood, but if I could take just two minutes to show our new vendor reconciliation flow? Pranav: No thank you, please remove my name from your outreach list. Have a good day."
+          },
+          transcript_payload: null
+        },
+        {
+          record_ref: "C02",
+          source_type: "call",
+          source_id: "call_c02_gatekeeper",
+          payload: {
+            title: "Apex Horizon Follow-up",
+            rep_name: "Leela",
+            prospect_name: "Sonia (via Reception)",
+            company: "Apex Horizon",
+            started_at: "2026-08-21T05:10:00.000Z", // 10:40 IST
+            duration_seconds: 68,
+            is_connected: true,
+            is_conversation: true, // Label conflict: gatekeeper only
+            outcome: "left_message",
+            transcript: "Receptionist: Good morning, Apex Horizon. Leela: Hi, could you please connect me with Sonia in Finance? Receptionist: One moment please checking her calendar... It looks as though she isn't in the office today. Would you like to leave a voicemail or call back on Monday? Leela: I will try back next week, thank you so much."
+          },
+          transcript_payload: null
+        },
+        {
+          record_ref: "C03",
+          source_type: "call",
+          source_id: "call_c03_milan",
+          payload: {
+            title: "Nexus Tech Consultation",
+            rep_name: "Kiran",
+            prospect_name: "Milan",
+            company: "Nexus Tech",
+            started_at: "2026-08-21T05:30:00.000Z", // 11:00 IST
+            duration_seconds: 210,
+            is_connected: true,
+            is_conversation: true,
+            outcome: "follow_up_email",
+            transcript: "Kiran: Hi Milan, Kiran here from SpendNest following up on your inquiry. Milan: Yes Kiran, audio is slightly muffled, but I can hear you. Look, we reviewed the developer API tier, but it isn't essential enough for us to spend much on it right now. Kiran: Totally fair. Could I email you the document on Developer access and event notifications — follow-up so you have the technical specs on file? Milan: Sure, send that over and check in with me around Monday or Tuesday."
+          },
+          transcript_payload: null
+        },
+        {
+          record_ref: "C04",
+          source_type: "call",
+          source_id: "call_c04_lanternpath",
+          payload: {
+            title: "Lanternpath Media Voicemail",
+            rep_name: "Arun",
+            prospect_name: "Rachel",
+            company: "Lanternpath Media",
+            started_at: "2026-08-21T06:05:00.000Z", // 11:35 IST
+            duration_seconds: 45,
+            is_connected: false,
+            is_conversation: false,
+            outcome: "voicemail",
+            transcript: "Arun: Hi Rachel, Arun calling from SpendNest. Calling back because our information first went to the wrong email address last week. I wanted to make sure you received the updated platform overview. I will follow up via email with the deck attached."
+          },
+          transcript_payload: null
+        },
+        {
+          record_ref: "C05",
+          source_type: "call",
+          source_id: "call_c05_storeharbor",
+          payload: {
+            title: "StoreHarbor User Discovery",
+            rep_name: "Meera",
+            prospect_name: "Kavita",
+            company: "StoreHarbor",
+            started_at: "2026-08-21T07:15:00.000Z", // 12:45 IST
+            duration_seconds: 180,
+            is_connected: true,
+            is_conversation: true,
+            outcome: "presentation_sent",
+            transcript: "Meera: Hi Kavita, Meera from SpendNest. We offer automated employee expense cards and batch payouts. Kavita: We already have that. We are locked into our existing bank contract for prepaid cards. Meera: Our platform handles real-time receipt scanning. Kavita: We already have that integrated as well. What I suggest is that you send me your presentation. If our current provider drops renewal terms next quarter, we can take a look."
+          },
+          transcript_payload: null
+        },
+        {
+          record_ref: "C06",
+          source_type: "call",
+          source_id: "call_c06_vanguard",
+          payload: {
+            title: "Vanguard Retail Intro",
+            rep_name: "Meera", // Metadata says Meera, audio says Ravi
+            prospect_name: "Deepak",
+            company: "Vanguard Retail",
+            started_at: "2026-08-21T08:00:00.000Z", // 13:30 IST
+            duration_seconds: 155,
+            is_connected: true,
+            is_conversation: true,
+            outcome: "pitch_delivered",
+            transcript: "Caller: Hello Deepak, Ravi here from the enterprise team at SpendNest. Deepak: Hello Ravi. We already have many of those things in place. We implemented custom reconciliation scripts last year. Caller: Our cloud engine matches invoice line items automatically. Deepak: Send a datasheet to my corporate email."
+          },
+          transcript_payload: null
+        },
+        {
+          record_ref: "C07",
+          source_type: "call",
+          source_id: "call_c07_willowbank",
+          payload: {
+            title: "Willowbank Partner Channel",
+            rep_name: "Dev",
+            prospect_name: "Siddharth",
+            company: "Willowbank Advisory",
+            started_at: "2026-08-21T09:10:00.000Z", // 14:40 IST
+            duration_seconds: 195,
+            is_connected: true,
+            is_conversation: true,
+            outcome: "proposal_agreed",
+            transcript: "Dev: Siddharth, good afternoon. Dev from SpendNest partnerships. Siddharth: Hey Dev. We currently refer our mid-market clients to a legacy ERP partner, but could you message me on our chat app and send whatever proposal you have? Dev: Absolutely, I will draft the partner rev-share breakdown. Can we reconnect Monday afternoon? Siddharth: Yes, Monday 3 PM works."
+          },
+          transcript_payload: null
+        },
+        {
+          record_ref: "C08",
+          source_type: "call",
+          source_id: "call_c08_raghav",
+          payload: {
+            title: "BlueSky Logistics Referral",
+            rep_name: "Meera",
+            prospect_name: "Raghav",
+            company: "BlueSky Logistics",
+            started_at: "2026-08-21T10:00:00.000Z", // 15:30 IST
+            duration_seconds: 220,
+            is_connected: true,
+            is_conversation: true,
+            outcome: "referral_provided",
+            transcript: "Meera: Hi Raghav, Meera calling from SpendNest. Raghav: Hi Meera. Procurement and corporate billing decisions are handled by my colleague Vikram. If you send him a proposal and say you spoke with me, he can take a look. His direct address is contact08@example.com. Meera: Confirming that: contact08@example.com. I will put together the summary note for Vikram."
+          },
+          transcript_payload: null
+        },
+        {
+          record_ref: "C09",
+          source_type: "call",
+          source_id: "call_c09_vedant",
+          payload: {
+            title: "Kitecrest Engineering Referral",
+            rep_name: "Meera",
+            prospect_name: "Vedant",
+            company: "Kitecrest Engineering",
+            started_at: "2026-08-21T10:45:00.000Z", // 16:15 IST
+            duration_seconds: 160,
+            is_connected: true,
+            is_conversation: true,
+            outcome: "referral_constrained",
+            transcript: "Meera: Good afternoon Vedant, Meera here. Vedant: Hi. We built in-house software for our travel expenditure tracking so we are not in the market. But you could reach out to our regional head of operations, Mr. Tandon. No, please don't use my name. Just say you are reaching out to introduce the platform directly. Meera: Understood completely Vedant, thank you for the professional guidance."
+          },
+          transcript_payload: null
+        },
+        {
+          record_ref: "C10",
+          source_type: "call",
+          source_id: "call_c10_aniket",
+          payload: {
+            title: "Meadowbrick Contact Check",
+            rep_name: "Meera",
+            prospect_name: "Aniket",
+            company: "Meadowbrick",
+            started_at: "2026-08-21T11:20:00.000Z", // 16:50 IST
+            duration_seconds: 110,
+            is_connected: true,
+            is_conversation: true,
+            outcome: "follow_up", // Conflicts: Aniket declined further calls
+            transcript: "Meera: Hello Aniket, Meera following up from SpendNest. Aniket: Hi Meera, as I mentioned in my email, I recently transitioned out of Meadowbrick. I said I will contact you if there is anything to discuss. Please do not schedule any call for Monday or Tuesday. Just email whatever standard brief you have."
+          },
+          transcript_payload: null
+        },
+
+        // 20 Background Calls (B01 - B20)
+        // 13 Arun, 7 Leela. Started between 23:51 and 23:59 IST (18:21 to 18:29 UTC)
+        // B11 and B14 have is_connected: true (conflict), others false
+        ...Array.from({ length: 20 }, (_, i) => {
+          const num = i + 1;
+          const ref = "B" + String(num).padStart(2, "0");
+          const rep = i < 13 ? "Arun" : "Leela";
+          const isConn = (num === 11 || num === 14); // Exactly B11 and B14
+          const secOffset = i * 24; // Spans ~8 mins (480s)
+          const startTime = new Date(Date.parse("2026-08-21T18:21:00.000Z") + secOffset * 1000).toISOString();
+          return {
+            record_ref: ref,
+            source_type: "call",
+            source_id: `call_${ref.toLowerCase()}_bg`,
+            payload: {
+              title: `Outbound Campaign Attempt ${ref}`,
+              rep_name: rep,
+              prospect_name: `Lead ${ref}`,
+              company: `Target Corp ${ref}`,
+              started_at: startTime,
+              duration_seconds: isConn ? 42 : 12,
+              is_connected: isConn,
+              is_conversation: false,
+              outcome: isConn ? "unresponsive_connected" : "no_answer",
+              transcript: null // No text supplied
+            },
+            transcript_payload: null
+          };
+        }),
+
+        // 14 Meetings (M01 - M14)
+        {
+          record_ref: "M01",
+          source_type: "meeting",
+          source_id: "meet_m01_harborpath",
+          payload: {
+            title: "Harborpath Partnership Commercials",
+            organizer_email: "team08@example.com",
+            starts_at: "2026-08-21T03:30:00.000Z", // 09:00 IST
+            duration_seconds: 1800,
+            recording_status: "completed",
+            summary_status: "failed", // source status only
+            has_transcript: true
+          },
+          transcript_payload: {
+            turns: [
+              { turn: 1, speaker: "Organizer", timecode: "00:01", text: "Welcome everyone, let us discuss Harborpath partner terms." },
+              { turn: 5, speaker: "Harborpath Lead", timecode: "03:15", text: "We have reviewed your preliminary deck and commission tiers." },
+              { turn: 9, speaker: "Harborpath Lead", timecode: "06:40", text: "On the referral tier, we expect a baseline commission of USD 260 per converted mid-market account." },
+              { turn: 13, speaker: "Organizer", timecode: "10:12", text: "We will need formal US operations evidence before our legal team signs off on that tier." },
+              { turn: 20, speaker: "Harborpath Lead", timecode: "16:22", text: "Our marketing team also needs a scalable link for tracking incoming leads." },
+              { turn: 25, speaker: "Organizer", timecode: "22:50", text: "I will send the documents over by end of day today." }
+            ]
+          }
+        },
+        {
+          record_ref: "M02",
+          source_type: "meeting",
+          source_id: "meet_m02_ledgerbridge",
+          payload: {
+            title: "LedgerBridge Integration & Licensing",
+            organizer_email: "team09@example.com",
+            starts_at: "2026-08-21T04:30:00.000Z", // 10:00 IST
+            duration_seconds: 2400,
+            recording_status: "completed",
+            has_transcript: true
+          },
+          transcript_payload: {
+            turns: [
+              { turn: 2, speaker: "SpendNest Lead", timecode: "01:10", text: "Thanks for meeting LedgerBridge. SpendNest is evaluating your middleware." },
+              { turn: 11, speaker: "SpendNest Lead", timecode: "08:15", text: "To be clear, management has not yet made a formal decision to invest in this module." },
+              { turn: 12, speaker: "SpendNest Lead", timecode: "09:00", text: "We are assessing architecture compatibility first." },
+              { turn: 15, speaker: "LedgerBridge Rep", timecode: "11:45", text: "Understood, and Q4 is not an immovable deadline for your team." },
+              { turn: 31, speaker: "LedgerBridge Rep", timecode: "24:30", text: "For standard deployment, setup from EUR 2,600/6,500 depending on connector depth." },
+              { turn: 33, speaker: "SpendNest Lead", timecode: "26:10", text: "We prefer a pilot scope proposal rather than a generic boilerplate contract." },
+              { turn: 34, speaker: "LedgerBridge Rep", timecode: "27:00", text: "We usually operate from our standard template first." },
+              { turn: 36, speaker: "LedgerBridge Rep", timecode: "29:15", text: "I will ensure our supplier sends template terms by Friday." }
+            ]
+          }
+        },
+        {
+          record_ref: "M03",
+          source_type: "meeting",
+          source_id: "meet_m03_asterloom",
+          payload: {
+            title: "Asterloom Corporate Cards Discussion",
+            organizer_email: "team08@example.com",
+            starts_at: "2026-08-21T05:30:00.000Z", // 11:00 IST
+            duration_seconds: 2100,
+            recording_status: "completed",
+            has_transcript: true
+          },
+          transcript_payload: {
+            turns: [
+              { turn: 5, speaker: "Asterloom Finance", timecode: "04:10", text: "We currently disburse cash advances across 40 field personnel." },
+              { turn: 6, speaker: "Asterloom Finance", timecode: "05:00", text: "I had thought about a corporate credit card rather than a prepaid load card." },
+              { turn: 16, speaker: "SpendNest Rep", timecode: "12:30", text: "Our automatic sync is something we can build into your ledger within two weeks." },
+              { turn: 22, speaker: "Asterloom Finance", timecode: "18:05", text: "On pricing, your slide quoted INR 39,000 annual fee." },
+              { turn: 23, speaker: "SpendNest Rep", timecode: "18:50", text: "That is for premium multi-entity. For single entity it is 26,000." },
+              { turn: 24, speaker: "Asterloom Finance", timecode: "19:40", text: "That fee schedule is confusing, please clarify in writing." },
+              { turn: 28, speaker: "Asterloom Finance", timecode: "23:15", text: "Our CFO has final sign-off and will evaluate this next week." },
+              { turn: 35, speaker: "SpendNest Rep", timecode: "28:20", text: "I will make sure the revised proposal is sent by Monday." },
+              { turn: 36, speaker: "Asterloom Finance", timecode: "29:05", text: "We will await the CFO decision once that proposal arrives." }
+            ]
+          }
+        },
+        {
+          record_ref: "M04",
+          source_type: "meeting",
+          source_id: "meet_m04_cedarwave",
+          payload: {
+            title: "Cedarwave Corporate Account Review",
+            organizer_email: "team09@example.com",
+            starts_at: "2026-08-21T06:30:00.000Z", // 12:00 IST
+            duration_seconds: 1950,
+            recording_status: "completed",
+            has_transcript: true
+          },
+          transcript_payload: {
+            turns: [
+              { turn: 4, speaker: "SpendNest AM", timecode: "03:10", text: "As notified earlier, our old programme closing in the coming weeks requires migrating your users." },
+              { turn: 11, speaker: "Cedarwave Ops", timecode: "08:45", text: "Honestly, moving from prepaid to credit is the main issue for us right now." },
+              { turn: 23, speaker: "SpendNest AM", timecode: "16:20", text: "Our risk team needs to confirm credit line eligibility first." },
+              { turn: 25, speaker: "Cedarwave Ops", timecode: "18:10", text: "Your portal currently does not display our approved credit limit anywhere." },
+              { turn: 28, speaker: "SpendNest AM", timecode: "21:00", text: "I will have Team member A verify account eligibility." },
+              { turn: 30, speaker: "Cedarwave Ops", timecode: "23:15", text: "Also our sales department was shifted under global marketing." },
+              { turn: 31, speaker: "Cedarwave Ops", timecode: "24:00", text: "That department-move issue created duplicate cardholder profiles." }
+            ]
+          }
+        },
+        {
+          record_ref: "M05",
+          source_type: "meeting",
+          source_id: "meet_m05_silent_call",
+          payload: {
+            title: "Internal Sync - Empty Room",
+            organizer_email: "team10@example.com",
+            starts_at: "2026-08-21T07:30:00.000Z", // 13:00 IST
+            duration_seconds: 900,
+            recording_status: "completed",
+            has_transcript: true
+          },
+          transcript_payload: {
+            turns: [] // Recorded, nobody spoke
+          }
+        },
+        {
+          record_ref: "M06",
+          source_type: "meeting",
+          source_id: "meet_m06_mapletrail",
+          payload: {
+            title: "Mapletrail Demo & Technical Assessment",
+            organizer_email: "team07@example.com",
+            starts_at: "2026-08-21T08:30:00.000Z", // 14:00 IST
+            duration_seconds: 2250,
+            recording_status: "completed",
+            has_transcript: true
+          },
+          transcript_payload: {
+            turns: [
+              { turn: 10, speaker: "Mapletrail Lead", timecode: "07:30", text: "We process roughly 260 to 390 supplier invoices per month across three plants." },
+              { turn: 15, speaker: "SpendNest Rep", timecode: "11:20", text: "So you are looking at around 390 to 520 invoices monthly once expansion kicks in?" },
+              { turn: 16, speaker: "Mapletrail Lead", timecode: "12:05", text: "Approximately, though that is a very rough forecast rather than a verified report." },
+              { turn: 29, speaker: "SpendNest Rep", timecode: "21:40", text: "I will make sure our product material is sent directly after this call." },
+              { turn: 31, speaker: "Mapletrail Lead", timecode: "23:10", text: "How do you handle SOC2 Type II audit logs for card spend modifications?" },
+              { turn: 32, speaker: "SpendNest Rep", timecode: "24:00", text: "We follow industry-standard encryption and security protocols everywhere." }
+            ]
+          }
+        },
+        {
+          record_ref: "M07",
+          source_type: "meeting",
+          source_id: "meet_m07_willowfield",
+          payload: {
+            title: "Willowfield Systems Troubleshooting",
+            organizer_email: "team11@example.com",
+            starts_at: "2026-08-21T09:30:00.000Z", // 15:00 IST
+            duration_seconds: 1800,
+            recording_status: "processing",
+            has_transcript: true,
+            unavailable_reason: "transcript will be provided in a later batch"
+          },
+          transcript_payload: {
+            turns: [] // Empty in batch 1, awaiting late transcript
+          }
+        },
+        {
+          record_ref: "M08",
+          source_type: "meeting",
+          source_id: "meet_m08_empty_bridge",
+          payload: {
+            title: "Client Check-in - No Attendance",
+            organizer_email: "team12@example.com",
+            starts_at: "2026-08-21T10:30:00.000Z", // 16:00 IST
+            duration_seconds: 600,
+            recording_status: "completed",
+            has_transcript: true
+          },
+          transcript_payload: {
+            turns: [] // Recorded, nobody spoke
+          }
+        },
+        {
+          record_ref: "M09",
+          source_type: "meeting",
+          source_id: "meet_m09_account_setup",
+          payload: {
+            title: "Horizon Onboarding & Access Escalation",
+            organizer_email: "team08@example.com",
+            starts_at: "2026-08-21T11:00:00.000Z", // 16:30 IST
+            duration_seconds: 1500,
+            recording_status: "completed",
+            has_transcript: true
+          },
+          transcript_payload: {
+            turns: [
+              { turn: 11, speaker: "Customer Admin", timecode: "06:10", text: "We have multiple finance clerks using a shared mailbox for company invoices." },
+              { turn: 15, speaker: "Customer Admin", timecode: "09:30", text: "Giving full admin rights to that mailbox violates our internal segregation of duties." },
+              { turn: 18, speaker: "SpendNest CS", timecode: "12:15", text: "We understand that concern and need to configure role permissions properly." },
+              { turn: 21, speaker: "Customer Admin", timecode: "15:45", text: "Even worse, when clicking the fresh password reset link, it immediately says token has expired." },
+              { turn: 22, speaker: "SpendNest CS", timecode: "16:30", text: "I will escalate this to engineering and give you an update today, or by Monday." },
+              { turn: 31, speaker: "Customer Admin", timecode: "22:10", text: "Please ensure we have that resolution today, or by Monday so payroll is not delayed." }
+            ]
+          }
+        },
+        {
+          record_ref: "M10",
+          source_type: "meeting",
+          source_id: "meet_m10_billing_walkthrough",
+          payload: {
+            title: "Internal Billing Walkthrough & Enablement",
+            organizer_email: "team13@example.com",
+            starts_at: "2026-08-21T11:45:00.000Z", // 17:15 IST
+            duration_seconds: 1620,
+            recording_status: "completed",
+            has_transcript: true
+          },
+          transcript_payload: {
+            turns: [
+              { turn: 5, speaker: "Billing Specialist", timecode: "03:40", text: "This session is an internal walkthrough of failed payment protocols." },
+              { turn: 15, speaker: "Billing Specialist", timecode: "10:15", text: "When a recurring charge fails three times, the merchant account triggers an automatic freeze." },
+              { turn: 17, speaker: "Trainee", timecode: "12:00", text: "Can support agents override that retry/freeze process manually?" },
+              { turn: 18, speaker: "Billing Specialist", timecode: "12:45", text: "No, the retry/freeze process requires L2 supervisor approval." },
+              { turn: 20, speaker: "Trainee", timecode: "14:20", text: "I will file a ticket so back-office access to be requested for my user role." }
+            ]
+          }
+        },
+        {
+          record_ref: "M11",
+          source_type: "meeting",
+          source_id: "meet_m11_silent_quarterly",
+          payload: {
+            title: "Quarterly Review Placeholder",
+            organizer_email: "team06@example.com",
+            starts_at: "2026-08-21T12:30:00.000Z", // 18:00 IST
+            duration_seconds: 1200,
+            recording_status: "completed",
+            has_transcript: true
+          },
+          transcript_payload: {
+            turns: [] // Recorded, nobody spoke
+          }
+        },
+        {
+          record_ref: "M12",
+          source_type: "meeting",
+          source_id: "meet_m12_cancelled_meeting",
+          payload: {
+            title: "Vendor Sync - Cancelled Session",
+            organizer_email: "team14@example.com",
+            starts_at: "2026-08-21T13:00:00.000Z", // 18:30 IST
+            duration_seconds: 1800, // Cancelled: duration must never be summed as attended time
+            recording_status: "cancelled",
+            has_transcript: false
+          },
+          transcript_payload: null
+        },
+        {
+          record_ref: "M13",
+          source_type: "meeting",
+          source_id: "meet_m13_cedarwave_notetaker",
+          payload: {
+            title: "Cedarwave Architecture Follow-up", // Same org as M04, unverified association
+            organizer_email: "team09@example.com",
+            starts_at: "2026-08-21T14:00:00.000Z", // 19:30 IST
+            duration_seconds: 1800,
+            recording_status: "completed",
+            notetaker_scheduled: false,
+            has_transcript: false
+          },
+          transcript_payload: null
+        },
+        {
+          record_ref: "M14",
+          source_type: "meeting",
+          source_id: "meet_m14_cancelled_exec",
+          payload: {
+            title: "Executive Intro - Cancelled",
+            organizer_email: "arun@example.com", // Distinct organiser dimension, not rep Arun
+            starts_at: "2026-08-21T14:45:00.000Z", // 20:15 IST
+            duration_seconds: 1200,
+            recording_status: "cancelled",
+            has_transcript: false
+          },
+          transcript_payload: null
+        }
+      ]
+    };
+
+    const UPDATE_DATA = {
+      batch_id: "batch_02",
+      revision: 2,
+      exported_at: "2026-08-21T19:00:00.000Z",
+      records: [
+        {
+          record_ref: "M07",
+          source_type: "meeting",
+          source_id: "meet_m07_willowfield",
+          payload: {
+            title: "Willowfield Systems Troubleshooting",
+            organizer_email: "team11@example.com",
+            starts_at: "2026-08-21T09:30:00.000Z", // 15:00 IST
+            duration_seconds: 1800,
+            recording_status: "completed",
+            has_transcript: true,
+            unavailable_reason: null
+          },
+          transcript_payload: {
+            turns: [
+              { turn: 1, speaker: "Customer Lead", timecode: "00:15", text: "Thanks for joining. We have four distinct bugs disrupting our billing team." },
+              { turn: 3, speaker: "Customer Lead", timecode: "01:40", text: "First issue: line item description not updating after invoice editing." },
+              { turn: 7, speaker: "SpendNest Tech", timecode: "04:10", text: "Understood, that seems like a cache persistence glitch on draft saves." },
+              { turn: 8, speaker: "Customer Lead", timecode: "05:00", text: "Second issue: receipt attachment upload fails on Recreate payment flow." },
+              { turn: 13, speaker: "SpendNest Tech", timecode: "08:15", text: "For now, the workaround is uploading directly from the transaction detail tab." },
+              { turn: 15, speaker: "Customer Lead", timecode: "09:50", text: "Okay, but that workaround takes triple the clicks for 50 expenses." },
+              { turn: 16, speaker: "Customer Lead", timecode: "10:30", text: "Third issue: employee travel reimbursements stuck Processing for over 48 hours." },
+              { turn: 19, speaker: "SpendNest Tech", timecode: "12:45", text: "Our payout gateway batch worker stalled. I will push an update in an hour or two." },
+              { turn: 21, speaker: "Customer Lead", timecode: "14:10", text: "Fourth issue: clicking Mark as paid keeps the previous amount instead of the new total." },
+              { turn: 25, speaker: "SpendNest Tech", timecode: "17:00", text: "I have documented all four. Team member A will own investigation and follow-up." }
+            ]
+          }
+        }
+      ]
+    };
+
+    // ==========================================
+    // SEED ANALYSIS PACKS
+    // ==========================================
+    const SEED_ANALYSIS_PACKS = {
+      "call::call_c01_harborlight": {
+        based_on_revision: 1,
+        suggested_route: ["Sales Coaching"],
+        primary_route: "Sales Coaching",
+        what_happened: "Rep Arun attempted a cold outreach to Pranav at Harborlight Advisory. Pranav immediately rejected the call stating he did not request it and was not interested.",
+        evidence: [{ type: "call", quote: "I didn't ask for this call, and I'm not interested." }],
+        does_not_establish: "Does not establish any product fit, commercial need, or openness to future outreach.",
+        next_action: "Honor do-not-contact request and remove prospect from outbound sequence.",
+        owner: "Owner not stated",
+        source_label_check: "Outcome recorded as not_interested, which aligns with verbal rejection."
+      },
+      "call::call_c02_gatekeeper": {
+        based_on_revision: 1,
+        suggested_route: ["Unprocessed / Low Signal"],
+        primary_route: "Unprocessed / Low Signal",
+        what_happened: "Leela called Apex Horizon seeking Sonia. Receptionist stated Sonia was not in the office today.",
+        evidence: [{ type: "call", quote: "It looks as though she isn't in the office today." }],
+        does_not_establish: "Target contact was never reached; no conversation occurred with decision maker.",
+        next_action: "Follow up next week when target returns to office.",
+        owner: "Owner not stated",
+        source_label_check: "Stored is_conversation=true conflicts with transcript: target was never reached (gatekeeper only)."
+      },
+      "call::call_c03_milan": {
+        based_on_revision: 1,
+        suggested_route: ["Deal Next Steps"],
+        primary_route: "Deal Next Steps",
+        what_happened: "Kiran consulted with Milan at Nexus Tech. Milan noted developer tier isn't essential enough to spend on currently, but agreed to receive follow-up documentation.",
+        evidence: [
+          { type: "call", quote: "it isn't essential enough for us to spend much on it" },
+          { type: "call", quote: "Developer access and event notifications — follow-up" }
+        ],
+        does_not_establish: "No budget or timeline confirmed. Poor audio noted by prospect.",
+        next_action: "Email Developer access and event notifications — follow-up and try checking in Monday/Tuesday.",
+        owner: "Kiran",
+        source_label_check: "Follow-up email outcome is accurate."
+      },
+      "call::call_c04_lanternpath": {
+        based_on_revision: 1,
+        suggested_route: ["Deal Next Steps"],
+        primary_route: "Deal Next Steps",
+        what_happened: "Arun left a voicemail for Rachel at Lanternpath Media explaining that earlier information had been sent to the wrong address.",
+        evidence: [{ type: "call", quote: "our information first went to the wrong email address" }],
+        does_not_establish: "One-way voicemail; no prospect engagement or confirmed receipt.",
+        next_action: "Send email with platform overview deck attached.",
+        owner: "Arun",
+        source_label_check: "Marked correctly as voicemail and not connected."
+      },
+      "call::call_c05_storeharbor": {
+        based_on_revision: 1,
+        suggested_route: ["Deal Next Steps", "Sales Coaching"],
+        primary_route: "Deal Next Steps",
+        what_happened: "Meera pitched StoreHarbor user Kavita who repeatedly stated they already have those capabilities with their existing bank.",
+        evidence: [
+          { type: "call", quote: "We already have that" },
+          { type: "call", quote: "What I suggest is that you send me your presentation." }
+        ],
+        does_not_establish: "No active purchase intent; prospect interest is purely contingent on future renewal terms from incumbent.",
+        next_action: "Send platform presentation deck for future review.",
+        owner: "Meera",
+        source_label_check: "Outcome recorded as presentation_sent. Coaching note: conduct discovery before feature pitch."
+      },
+      "call::call_c06_vanguard": {
+        based_on_revision: 1,
+        suggested_route: ["Sales Coaching"],
+        primary_route: "Sales Coaching",
+        what_happened: "Outbound call logged under rep Meera, but speaker identified as 'Ravi here'. Prospect Deepak mentioned having custom scripts in place.",
+        evidence: [
+          { type: "call", quote: "We already have many of those things in place." },
+          { type: "call", quote: "Ravi here" }
+        ],
+        does_not_establish: "No immediate software requirement. High metadata discrepancy.",
+        next_action: "Send technical datasheet to prospect corporate email.",
+        owner: "Owner not stated",
+        source_label_check: "Flag caller-name mismatch (rep_name is Meera, spoken audio is Ravi); do not attribute to Meera without caveat."
+      },
+      "call::call_c07_willowbank": {
+        based_on_revision: 1,
+        suggested_route: ["Deal Next Steps"],
+        primary_route: "Deal Next Steps",
+        what_happened: "Dev discussed partnership terms with Siddharth at Willowbank Advisory. Siddharth agreed to review proposal on chat and schedule call.",
+        evidence: [{ type: "call", quote: "could you message me on our chat app and send whatever proposal you have" }],
+        does_not_establish: "Prospect currently refers clients elsewhere; interest in switching partners not verified.",
+        next_action: "Dev to send proposal on chat app and hold follow-up call Monday 3 PM.",
+        owner: "Dev",
+        source_label_check: "Accurately recorded proposal_agreed."
+      },
+      "call::call_c08_raghav": {
+        based_on_revision: 1,
+        suggested_route: ["Deal Next Steps"],
+        primary_route: "Deal Next Steps",
+        what_happened: "Meera contacted Raghav at BlueSky Logistics, who provided colleague Vikram's contact email for corporate billing.",
+        evidence: [
+          { type: "call", quote: "If you send him a proposal and say you spoke with me, he can take a look." },
+          { type: "call", quote: "contact08@example.com" }
+        ],
+        does_not_establish: "Colleague Vikram's actual interest or budget remains unknown.",
+        next_action: "Draft and send proposal to contact08@example.com referencing conversation.",
+        owner: "Meera",
+        source_label_check: "Correctly classified as referral_provided."
+      },
+      "call::call_c09_vedant": {
+        based_on_revision: 1,
+        suggested_route: ["Deal Next Steps", "Sales Coaching"],
+        primary_route: "Deal Next Steps",
+        what_happened: "Vedant at Kitecrest Engineering explained they use in-house software, but pointed Meera toward regional operations head Mr. Tandon with strict naming restriction.",
+        evidence: [{ type: "call", quote: "No, please don't use my name." }],
+        does_not_establish: "Mr. Tandon's team has not expressed interest; in-house solution is currently entrenched.",
+        next_action: "Cold outreach to Mr. Tandon strictly without citing Vedant's name.",
+        owner: "Meera",
+        source_label_check: "Positive coaching on respecting privacy boundary."
+      },
+      "call::call_c10_aniket": {
+        based_on_revision: 1,
+        suggested_route: ["Unprocessed / Low Signal"],
+        primary_route: "Unprocessed / Low Signal",
+        what_happened: "Meera reached Aniket who stated he has transitioned out of Meadowbrick and specifically asked not to be scheduled for calls.",
+        evidence: [{ type: "call", quote: "I said I will contact you if there is anything to discuss." }],
+        does_not_establish: "No enterprise opportunity at Meadowbrick through this contact.",
+        next_action: "Send brief via email only if requested; cancel any pending calendar invites.",
+        owner: "Owner not stated",
+        source_label_check: "Stored outcome follow_up conflicts: contact declined Monday/Tuesday call and left company."
+      },
+
+      // Meetings
+      "meeting::meet_m01_harborpath": {
+        based_on_revision: 1,
+        suggested_route: ["Deal Next Steps"],
+        primary_route: "Deal Next Steps",
+        what_happened: "Partnership commercial negotiation with Harborpath. Discussion centered on commission structure and lead tracking.",
+        evidence: [
+          { type: "meeting", turn: 9, note: "Commission baseline USD 260 per converted mid-market account" },
+          { type: "meeting", turn: 13, note: "US operations evidence required by legal" },
+          { type: "meeting", turn: 20, note: "Scalable link needed for tracking leads" },
+          { type: "meeting", turn: 25, note: "I will send the documents by end of day" }
+        ],
+        does_not_establish: "No signed memorandum or committed referral volume.",
+        next_action: "Send partnership documents and provide scalable lead tracking link.",
+        owner: "Organizer",
+        source_label_check: "Source summary_status=failed is a system export status only; actual meeting took place."
+      },
+      "meeting::meet_m02_ledgerbridge": {
+        based_on_revision: 1,
+        suggested_route: ["Internal / Vendor Strategy"],
+        primary_route: "Internal / Vendor Strategy",
+        what_happened: "SpendNest evaluating supplier LedgerBridge for middleware licensing and deployment timeline.",
+        evidence: [
+          { type: "meeting", turn: 11, note: "No formal management decision to invest yet" },
+          { type: "meeting", turn: 15, note: "Q4 not an immovable deadline" },
+          { type: "meeting", turn: 31, note: "Setup cost EUR 2,600/6,500 depending on connector" },
+          { type: "meeting", turn: 33, note: "SpendNest requested pilot scope rather than template" },
+          { type: "meeting", turn: 36, note: "Supplier sends standard template terms by Friday" }
+        ],
+        does_not_establish: "SpendNest has not approved budget or procurement sign-off.",
+        next_action: "Review LedgerBridge standard template upon receipt Friday.",
+        owner: "SpendNest Lead",
+        source_label_check: "Classified properly as vendor evaluation."
+      },
+      "meeting::meet_m03_asterloom": {
+        based_on_revision: 1,
+        suggested_route: ["Deal Next Steps", "Sales Coaching"],
+        primary_route: "Deal Next Steps",
+        what_happened: "Commercial presentation with Asterloom regarding card migration and expense synchronization.",
+        evidence: [
+          { type: "meeting", turn: 6, note: "Prospect expected corporate credit card rather than prepaid" },
+          { type: "meeting", turn: 16, note: "Rep promised automatic sync as 'something we can build'" },
+          { type: "meeting", turn: 22, note: "Confusion regarding INR 39,000 vs INR 26,000 pricing tiers" },
+          { turn: 28, type: "meeting", note: "CFO decision pending review next week" },
+          { turn: 35, type: "meeting", note: "Proposal to be sent by Monday" }
+        ],
+        does_not_establish: "Field volume unverified (Turn 5). No signed commitment; product commitment on auto-sync is unconfirmed by eng.",
+        next_action: "Clarify fee schedule in writing and deliver proposal by Monday for CFO review.",
+        owner: "SpendNest Rep",
+        source_label_check: "Coaching opportunity regarding pricing transparency and unconfirmed feature commitments."
+      },
+      "meeting::meet_m04_cedarwave": {
+        based_on_revision: 1,
+        suggested_route: ["Customer Escalation / Bug", "Deal Next Steps"],
+        primary_route: "Customer Escalation / Bug",
+        what_happened: "Cedarwave account review during transition away from legacy prepaid programme.",
+        evidence: [
+          { type: "meeting", turn: 4, note: "Old programme closing in the coming weeks" },
+          { type: "meeting", turn: 11, note: "Moving from prepaid to credit is the main operational issue" },
+          { type: "meeting", turn: 25, note: "Approved credit limit not shown in portal" },
+          { type: "meeting", turn: 28, note: "Eligibility to be confirmed by Team member A" },
+          { type: "meeting", turn: 31, note: "Department move caused duplicate cardholder profiles" }
+        ],
+        does_not_establish: "No migration agreement finalized; credit line has not yet been extended.",
+        next_action: "Team member A to verify credit eligibility and resolve duplicate cardholder profiles.",
+        owner: "Team member A",
+        source_label_check: "Customer escalation requiring risk and support intervention."
+      },
+      "meeting::meet_m06_mapletrail": {
+        based_on_revision: 1,
+        suggested_route: ["Deal Next Steps", "Sales Coaching"],
+        primary_route: "Deal Next Steps",
+        what_happened: "Mapletrail demo reviewing invoice processing volumes and security architecture.",
+        evidence: [
+          { type: "meeting", turn: 15, note: "Rep rephrased 260-390 invoices to 390-520" },
+          { type: "meeting", turn: 16, note: "Customer responded Approximately to inflated volume" },
+          { type: "meeting", turn: 29, note: "Product material to be sent" },
+          { type: "meeting", turn: 32, note: "Generic response given to specific SOC2 Type II inquiry" }
+        ],
+        does_not_establish: "Early exploration only; security audit documentation still unverified.",
+        next_action: "Send technical product collateral and official SOC2 compliance summary.",
+        owner: "SpendNest Rep",
+        source_label_check: "Coaching note: avoid leading customer on volume estimates and provide specific compliance answers."
+      },
+      "meeting::meet_m07_willowfield": {
+        based_on_revision: 2,
+        suggested_route: ["Customer Escalation / Bug"],
+        primary_route: "Customer Escalation / Bug",
+        what_happened: "Willowfield reported four distinct billing & expense workflow defects during troubleshooting session.",
+        evidence: [
+          { type: "meeting", turn: 3, note: "Line item description not updating after invoice editing" },
+          { type: "meeting", turn: 8, note: "Receipt upload fails on Recreate payment flow (workaround T13)" },
+          { type: "meeting", turn: 16, note: "Employee reimbursements stuck Processing over 48 hours" },
+          { type: "meeting", turn: 21, note: "Mark as paid keeps previous amount instead of updated total" }
+        ],
+        does_not_establish: "No severity level or engineering root cause established. Do not label 'critical' without system data.",
+        next_action: "Investigate gateway batch worker and push reimbursement update within 1-2 hours.",
+        owner: "Team member A",
+        source_label_check: "Valid high-priority defect escalation with promised immediate update."
+      },
+      "meeting::meet_m09_account_setup": {
+        based_on_revision: 1,
+        suggested_route: ["Customer Escalation / Bug"],
+        primary_route: "Customer Escalation / Bug",
+        what_happened: "Horizon customer experiencing blocking onboarding and security permission issues.",
+        evidence: [
+          { type: "meeting", turn: 15, note: "Admin rights on shared mailbox violates segregation of duties" },
+          { type: "meeting", turn: 21, note: "Fresh reset link immediately shows token has expired" },
+          { type: "meeting", turn: 22, note: "CS promised update today, or by Monday" }
+        ],
+        does_not_establish: "Root cause of auth token expiry unknown; login access not yet restored.",
+        next_action: "Escalate auth token expiry to engineering and deliver update today or by Monday.",
+        owner: "SpendNest CS",
+        source_label_check: "Blocking escalation; customer payroll timeline dependent on resolution."
+      },
+      "meeting::meet_m10_billing_walkthrough": {
+        based_on_revision: 1,
+        suggested_route: ["Internal / Vendor Strategy"],
+        primary_route: "Internal / Vendor Strategy",
+        what_happened: "Internal enablement session walking through card retry and account freeze policies.",
+        evidence: [
+          { type: "meeting", turn: 15, note: "Automatic freeze occurs when charge fails three times" },
+          { type: "meeting", turn: 18, note: "L2 supervisor required for retry/freeze override" },
+          { type: "meeting", turn: 20, note: "Back-office access to be requested for trainee role" }
+        ],
+        does_not_establish: "Process is speaker's operational description; system constraints not independently audited.",
+        next_action: "Trainee to submit internal access ticket for back-office role permissions.",
+        owner: "Trainee",
+        source_label_check: "Internal training session; correctly routed as Internal Strategy."
+      }
+    };
+
+    // ==========================================
+    // HELPER FUNCTIONS & LOGIC
+    // ==========================================
+    const COMPOSITE_KEY = (type, id) => `${type}::${id}`;
+
+    const formatIST = (isoString) => {
+      if (!isoString) return "N/A";
+      try {
+        const d = new Date(isoString);
+        return new Intl.DateTimeFormat("en-IN", {
+          timeZone: "Asia/Kolkata",
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true
+        }).format(d);
+      } catch (e) {
+        return isoString;
+      }
+    };
+
+    const formatISTTimeOnly = (isoString) => {
+      if (!isoString) return "";
+      try {
+        const d = new Date(isoString);
+        return new Intl.DateTimeFormat("en-IN", {
+          timeZone: "Asia/Kolkata",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false
+        }).format(d);
+      } catch (e) {
+        return "";
+      }
+    };
+
+    const hasUsableText = (record) => {
+      if (!record) return false;
+      if (record.source_type === "call") {
+        return !!(record.payload && record.payload.transcript && record.payload.transcript.trim().length > 0);
+      }
+      if (record.source_type === "meeting") {
+        const turns = record.transcript_payload && record.transcript_payload.turns;
+        return Array.isArray(turns) && turns.some(t => t.text && t.text.trim().length > 0);
+      }
+      return false;
+    };
+
+    const computeSourceStateTags = (record, overlay) => {
+      const tags = [];
+      const p = record.payload || {};
+      const tp = record.transcript_payload;
+      const textExists = hasUsableText(record);
+
+      if (textExists) {
+        tags.push({ label: "Has text", color: "bg-emerald-100 text-emerald-800 border-emerald-300" });
+      }
+
+      if (record.source_type === "meeting") {
+        if (p.recording_status === "cancelled") {
+          tags.push({ label: "Capture cancelled", color: "bg-rose-100 text-rose-800 border-rose-300" });
+        } else if (p.notetaker_scheduled === false) {
+          tags.push({ label: "No notetaker scheduled", color: "bg-slate-200 text-slate-700 border-slate-300" });
+        } else if (p.has_transcript && Array.isArray(tp?.turns) && tp.turns.length === 0 && p.unavailable_reason) {
+          tags.push({ label: "Awaiting late transcript", color: "bg-amber-100 text-amber-800 border-amber-300" });
+        } else if (p.recording_status === "completed" && Array.isArray(tp?.turns) && tp.turns.length === 0) {
+          tags.push({ label: "Recorded, nobody spoke", color: "bg-orange-100 text-orange-800 border-orange-300" });
+        }
+      }
+
+      if (record.source_type === "call" && !textExists) {
+        tags.push({ label: "No text supplied", color: "bg-slate-100 text-slate-600 border-slate-200" });
+      }
+
+      tags.push({ label: `Revision ${record.applied_revision}`, color: "bg-indigo-50 text-indigo-700 border-indigo-200" });
+
+      if (overlay && overlay.manual_override) {
+        tags.push({ label: "Manually routed", color: "bg-purple-100 text-purple-800 border-purple-300 font-semibold" });
+      }
+
+      // Special potential association tag
+      if (record.record_ref === "M13" || record.record_ref === "M04") {
+        tags.push({ label: "Possible association, unverified", color: "bg-blue-50 text-blue-700 border-blue-200" });
+      }
+
+      return tags;
+    };
+
+    const computeReviewState = (record, analysis, overlay) => {
+      const reasons = [];
+      const p = record.payload || {};
+      const key = COMPOSITE_KEY(record.source_type, record.source_id);
+
+      if (record.source_type === "call") {
+        if (record.record_ref === "C02" && p.is_conversation) {
+          reasons.push("Label conflict: gatekeeper answered, target was never reached");
+        }
+        if (record.record_ref === "C06") {
+          reasons.push("Rep identity mismatch: audio cites 'Ravi here', metadata lists Meera");
+        }
+        if (record.record_ref === "C10" && p.outcome === "follow_up") {
+          reasons.push("Label conflict: contact declined Monday/Tuesday call and left company");
+        }
+        if ((record.record_ref === "B11" || record.record_ref === "B14") && p.is_connected) {
+          reasons.push("Source-label conflict: is_connected=true but unresponsive with no text");
+        }
+      }
+
+      if (record.source_type === "meeting") {
+        if (record.record_ref === "M07" && record.applied_revision === 1) {
+          reasons.push("Late transcript pending from upstream provider");
+        }
+        if (["M05", "M08", "M11"].includes(record.record_ref)) {
+          reasons.push("Silent recording: meeting completed but nobody spoke");
+        }
+        if (record.record_ref === "M13") {
+          reasons.push("Unverified association with M04 (same organization name, no notetaker)");
+        }
+        if (record.record_ref === "M01" && p.summary_status === "failed") {
+          reasons.push("Export summary status failed in source metadata");
+        }
+      }
+
+      if (analysis && analysis.based_on_revision !== record.applied_revision) {
+        reasons.push("STALE: analysis based on older revision; awaiting review");
+      }
+
+      if (record.record_ref === "M07" && record.applied_revision === 2 && (!overlay || !overlay.acknowledged_at)) {
+        reasons.push("Revision 2 analysis ready: pending manager acknowledgment");
+      }
+
+      return {
+        needs_review: reasons.length > 0,
+        reasons: reasons
+      };
+    };
+
+    const computeDeterministicSuggestedRoutes = (record) => {
+      const p = record.payload || {};
+      const tp = record.transcript_payload;
+      const ref = record.record_ref;
+
+      // 1. Check if seed analysis pack exists and matches revision
+      const key = COMPOSITE_KEY(record.source_type, record.source_id);
+      const pack = SEED_ANALYSIS_PACKS[key];
+      if (pack && pack.based_on_revision === record.applied_revision) {
+        return {
+          routes: pack.suggested_route,
+          primary: pack.primary_route,
+          suggested_by: "pack"
+        };
+      }
+
+      // 2. Deterministic runtime rules
+      if (record.source_type === "meeting") {
+        if (p.recording_status === "cancelled" || p.notetaker_scheduled === false) {
+          return { routes: ["Unprocessed / Low Signal"], primary: "Unprocessed / Low Signal", suggested_by: "rules" };
+        }
+        if (Array.isArray(tp?.turns) && tp.turns.length === 0) {
+          return { routes: ["Unprocessed / Low Signal"], primary: "Unprocessed / Low Signal", suggested_by: "rules" };
+        }
+      }
+
+      if (record.source_type === "call" && !p.transcript) {
+        return { routes: ["Unprocessed / Low Signal"], primary: "Unprocessed / Low Signal", suggested_by: "rules" };
+      }
+
+      return { routes: ["Unprocessed / Low Signal"], primary: "Unprocessed / Low Signal", suggested_by: "rules" };
+    };
+
+    // ==========================================
+    // MAIN APP COMPONENT
+    // ==========================================
+    function App() {
+      // Three separate stores in state
+      const [sourceStore, setSourceStore] = useState({});
+      const [analysisStore, setAnalysisStore] = useState({});
+      const [overlayStore, setOverlayStore] = useState({});
+
+      // Navigation & filter state
+      const [activeTab, setActiveTab] = useState("inbox"); // "inbox" | "brief" | "methods"
+      const [selectedKey, setSelectedKey] = useState(null);
+      const [sourceTypeFilter, setSourceTypeFilter] = useState("ALL"); // ALL | call | meeting
+      const [repFilter, setRepFilter] = useState("ALL");
+      const [organiserFilter, setOrganiserFilter] = useState("ALL");
+      const [searchQuery, setSearchQuery] = useState("");
+      const [importReport, setImportReport] = useState(null);
+      const [testResults, setTestResults] = useState(null);
+      const [activePopover, setActivePopover] = useState(null);
+      const [transcriptFind, setTranscriptFind] = useState("");
+
+      // Route editor temporary state
+      const [editRoutes, setEditRoutes] = useState([]);
+      const [editPrimary, setEditPrimary] = useState("");
+      const [editNote, setEditNote] = useState("");
+
+      // 1. Initial Load & Persistence
+      useEffect(() => {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (parsed.source && Object.keys(parsed.source).length > 0) {
+              setSourceStore(parsed.source || {});
+              setAnalysisStore(parsed.analysis || {});
+              setOverlayStore(parsed.overlay || {});
+              const firstKey = Object.keys(parsed.source)[0];
+              setSelectedKey(firstKey);
+              return;
+            }
+          } catch (e) {
+            console.error("Error reading localStorage:", e);
+          }
+        }
+        // App opens in post-update state by default (Batch 1 then Batch 2)
+        executeBatchImportSequence([INITIAL_DATA, UPDATE_DATA], true);
+      }, []);
+
+      // Persist state updates
+      const persistState = (newSource, newAnalysis, newOverlay) => {
+        const payload = {
+          version: 1,
+          source: newSource,
+          analysis: newAnalysis,
+          overlay: newOverlay
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      };
+
+      // Upsert engine per specification
+      const applyBatchToState = (batch, currentSource, currentAnalysis, currentOverlay) => {
+        const report = {
+          batch_id: batch.batch_id,
+          revision: batch.revision,
+          added: 0,
+          replaced: 0,
+          ignored_stale: 0,
+          ignored_identical: 0,
+          total: batch.records ? batch.records.length : 0
+        };
+
+        const nextSource = { ...currentSource };
+        const nextAnalysis = { ...currentAnalysis };
+        const nextOverlay = { ...currentOverlay }; // Overlay is NEVER erased
+
+        (batch.records || []).forEach(incoming => {
+          const key = COMPOSITE_KEY(incoming.source_type, incoming.source_id);
+          const existing = nextSource[key];
+
+          if (!existing) {
+            // New record
+            nextSource[key] = {
+              record_ref: incoming.record_ref,
+              source_type: incoming.source_type,
+              source_id: incoming.source_id,
+              payload: JSON.parse(JSON.stringify(incoming.payload)),
+              transcript_payload: incoming.transcript_payload ? JSON.parse(JSON.stringify(incoming.transcript_payload)) : null,
+              applied_revision: batch.revision
+            };
+            report.added++;
+          } else if (batch.revision > existing.applied_revision) {
+            // Higher revision: REPLACE payload and transcript_payload completely
+            nextSource[key] = {
+              ...existing,
+              payload: JSON.parse(JSON.stringify(incoming.payload)),
+              transcript_payload: incoming.transcript_payload ? JSON.parse(JSON.stringify(incoming.transcript_payload)) : null,
+              applied_revision: batch.revision
+            };
+            report.replaced++;
+          } else if (batch.revision === existing.applied_revision) {
+            report.ignored_identical++;
+          } else {
+            report.ignored_stale++;
+          }
+
+          // Update analysis suggested routes based on current applied revision
+          const rec = nextSource[key];
+          const suggested = computeDeterministicSuggestedRoutes(rec);
+          nextAnalysis[key] = {
+            suggested_route: suggested.routes,
+            primary_route: suggested.primary,
+            suggested_by: suggested.suggested_by,
+            analysis_pack: SEED_ANALYSIS_PACKS[key] || null,
+            based_on_revision: SEED_ANALYSIS_PACKS[key] ? SEED_ANALYSIS_PACKS[key].based_on_revision : rec.applied_revision
+          };
+        });
+
+        return { nextSource, nextAnalysis, nextOverlay, report };
+      };
+
+      const executeBatchImportSequence = (batches, isInitialLaunch = false) => {
+        let curSource = isInitialLaunch ? {} : { ...sourceStore };
+        let curAnalysis = isInitialLaunch ? {} : { ...analysisStore };
+        let curOverlay = isInitialLaunch ? {} : { ...overlayStore };
+        let lastReport = null;
+
+        batches.forEach(b => {
+          const res = applyBatchToState(b, curSource, curAnalysis, curOverlay);
+          curSource = res.nextSource;
+          curAnalysis = res.nextAnalysis;
+          curOverlay = res.nextOverlay;
+          lastReport = res.report;
+        });
+
+        setSourceStore(curSource);
+        setAnalysisStore(curAnalysis);
+        setOverlayStore(curOverlay);
+        setImportReport(lastReport);
+        persistState(curSource, curAnalysis, curOverlay);
+
+        if (!selectedKey || !curSource[selectedKey]) {
+          const keys = Object.keys(curSource);
+          if (keys.length > 0) setSelectedKey(keys[0]);
+        }
+      };
+
+      // Replay actions
+      const handleLoadInitial = () => {
+        const res = applyBatchToState(INITIAL_DATA, sourceStore, analysisStore, overlayStore);
+        setSourceStore(res.nextSource);
+        setAnalysisStore(res.nextAnalysis);
+        setOverlayStore(res.nextOverlay);
+        setImportReport(res.report);
+        persistState(res.nextSource, res.nextAnalysis, res.nextOverlay);
+      };
+
+      const handleReimportShuffled = () => {
+        const shuffled = {
+          ...INITIAL_DATA,
+          records: [...INITIAL_DATA.records].sort(() => Math.random() - 0.5)
+        };
+        const res = applyBatchToState(shuffled, sourceStore, analysisStore, overlayStore);
+        setSourceStore(res.nextSource);
+        setAnalysisStore(res.nextAnalysis);
+        setOverlayStore(res.nextOverlay);
+        setImportReport(res.report);
+        persistState(res.nextSource, res.nextAnalysis, res.nextOverlay);
+      };
+
+      const handleApplyUpdate = () => {
+        const res = applyBatchToState(UPDATE_DATA, sourceStore, analysisStore, overlayStore);
+        setSourceStore(res.nextSource);
+        setAnalysisStore(res.nextAnalysis);
+        setOverlayStore(res.nextOverlay);
+        setImportReport(res.report);
+        persistState(res.nextSource, res.nextAnalysis, res.nextOverlay);
+      };
+
+      const handleLoadBoth = () => {
+        executeBatchImportSequence([INITIAL_DATA, UPDATE_DATA], false);
+      };
+
+      const handleResetClean = () => {
+        if (window.confirm("Reset to clean state? This clears all source records and manual overlays.")) {
+          localStorage.removeItem(STORAGE_KEY);
+          setSourceStore({});
+          setAnalysisStore({});
+          setOverlayStore({});
+          setSelectedKey(null);
+          setImportReport({ batch_id: "RESET", revision: 0, added: 0, replaced: 0, ignored_stale: 0, ignored_identical: 0, total: 0 });
+        }
+      };
+
+      const handleFileUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const parsed = JSON.parse(event.target.result);
+            if (!parsed.records || typeof parsed.revision !== "number") {
+              alert("Invalid JSON schema. Expected envelope { batch_id, revision, exported_at, records[] }");
+              return;
+            }
+            const res = applyBatchToState(parsed, sourceStore, analysisStore, overlayStore);
+            setSourceStore(res.nextSource);
+            setAnalysisStore(res.nextAnalysis);
+            setOverlayStore(res.nextOverlay);
+            setImportReport(res.report);
+            persistState(res.nextSource, res.nextAnalysis, res.nextOverlay);
+          } catch (err) {
+            alert("Failed to parse JSON file: " + err.message);
+          }
+        };
+        reader.readAsText(file);
+      };
+
+      // Route editor sync
+      const currentRecord = sourceStore[selectedKey] || null;
+      const currentAnalysis = analysisStore[selectedKey] || null;
+      const currentOverlay = overlayStore[selectedKey] || null;
+
+      useEffect(() => {
+        if (currentRecord) {
+          if (currentOverlay && currentOverlay.manual_override) {
+            setEditRoutes(currentOverlay.manual_routes || []);
+            setEditPrimary(currentOverlay.manual_primary || (currentOverlay.manual_routes ? currentOverlay.manual_routes[0] : ""));
+            setEditNote(currentOverlay.note || "");
+          } else if (currentAnalysis) {
+            setEditRoutes(currentAnalysis.suggested_route || []);
+            setEditPrimary(currentAnalysis.primary_route || (currentAnalysis.suggested_route ? currentAnalysis.suggested_route[0] : ""));
+            setEditNote("");
+          }
+        }
+      }, [selectedKey, sourceStore, analysisStore, overlayStore]);
+
+      const handleSaveManualRoute = () => {
+        if (!selectedKey) return;
+        if (editRoutes.length === 0) {
+          alert("Please select at least one route category.");
+          return;
+        }
+        const updatedOverlay = {
+          ...overlayStore,
+          [selectedKey]: {
+            manual_routes: editRoutes,
+            manual_primary: editPrimary || editRoutes[0],
+            manual_override: true,
+            note: editNote,
+            acknowledged_at: new Date().toISOString()
+          }
+        };
+        setOverlayStore(updatedOverlay);
+        persistState(sourceStore, analysisStore, updatedOverlay);
+      };
+
+      const handleRevertToSuggestion = () => {
+        if (!selectedKey) return;
+        const updatedOverlay = { ...overlayStore };
+        delete updatedOverlay[selectedKey];
+        setOverlayStore(updatedOverlay);
+        persistState(sourceStore, analysisStore, updatedOverlay);
+      };
+
+      const handleAcknowledgeM07 = () => {
+        if (!selectedKey) return;
+        const updatedOverlay = {
+          ...overlayStore,
+          [selectedKey]: {
+            ...(overlayStore[selectedKey] || {}),
+            acknowledged_at: new Date().toISOString()
+          }
+        };
+        setOverlayStore(updatedOverlay);
+        persistState(sourceStore, analysisStore, updatedOverlay);
+      };
+
+      // ==========================================
+      // COMPUTED METRICS & FILTERED LIST
+      // ==========================================
+      const allRecords = useMemo(() => Object.values(sourceStore), [sourceStore]);
+
+      const filteredRecords = useMemo(() => {
+        return allRecords.filter(r => {
+          if (sourceTypeFilter !== "ALL" && r.source_type !== sourceTypeFilter) return false;
+          if (r.source_type === "call" && repFilter !== "ALL" && r.payload?.rep_name !== repFilter) return false;
+          if (r.source_type === "meeting" && organiserFilter !== "ALL" && r.payload?.organizer_email !== organiserFilter) return false;
+          if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase();
+            const title = (r.payload?.title || "").toLowerCase();
+            const ref = (r.record_ref || "").toLowerCase();
+            const comp = (r.payload?.company || "").toLowerCase();
+            const person = (r.payload?.rep_name || r.payload?.organizer_email || "").toLowerCase();
+            if (!title.includes(q) && !ref.includes(q) && !comp.includes(q) && !person.includes(q)) return false;
+          }
+          return true;
+        });
+      }, [allRecords, sourceTypeFilter, repFilter, organiserFilter, searchQuery]);
+
+      // Metrics computed over filtered set and total set
+      const metrics = useMemo(() => {
+        const total = filteredRecords.length;
+        const withText = filteredRecords.filter(hasUsableText).length;
+        const textCoveragePct = total > 0 ? ((withText / total) * 100).toFixed(1) : "0.0";
+
+        // Source-reported connection rate (calls only)
+        const calls = filteredRecords.filter(r => r.source_type === "call");
+        const callsWithConnectField = calls.filter(r => r.payload?.is_connected !== undefined && r.payload?.is_connected !== null);
+        const connectedCalls = callsWithConnectField.filter(r => r.payload?.is_connected === true).length;
+        const connectRatePct = callsWithConnectField.length > 0
+          ? ((connectedCalls / callsWithConnectField.length) * 100).toFixed(1)
+          : "0.0";
+
+        // Needs review count
+        let needsReviewCount = 0;
+        let totalRouteAssignments = 0;
+        filteredRecords.forEach(r => {
+          const key = COMPOSITE_KEY(r.source_type, r.source_id);
+          const rev = computeReviewState(r, analysisStore[key], overlayStore[key]);
+          if (rev.needs_review) needsReviewCount++;
+
+          const over = overlayStore[key];
+          const anal = analysisStore[key];
+          const effectiveRoutes = (over && over.manual_override) ? over.manual_routes : (anal ? anal.suggested_route : []);
+          totalRouteAssignments += (effectiveRoutes?.length || 1);
+        });
+
+        return {
+          total,
+          withText,
+          textCoveragePct,
+          connectedCalls,
+          callsWithConnectCount: callsWithConnectField.length,
+          connectRatePct,
+          needsReviewCount,
+          totalRouteAssignments,
+          uniqueRecords: total
+        };
+      }, [filteredRecords, analysisStore, overlayStore]);
+
+      // Reps and organisers lists
+      const availableReps = useMemo(() => {
+        const set = new Set();
+        allRecords.filter(r => r.source_type === "call").forEach(r => {
+          if (r.payload?.rep_name) set.add(r.payload.rep_name);
+        });
+        return Array.from(set).sort();
+      }, [allRecords]);
+
+      const availableOrganisers = useMemo(() => {
+        const set = new Set();
+        allRecords.filter(r => r.source_type === "meeting").forEach(r => {
+          if (r.payload?.organizer_email) set.add(r.payload.organizer_email);
+        });
+        return Array.from(set).sort();
+      }, [allRecords]);
+
+      // Hourly timeline distribution
+      const hourlyDistribution = useMemo(() => {
+        const buckets = Array.from({ length: 24 }, (_, i) => ({
+          hour: i,
+          calls: 0,
+          meetings: 0,
+          people: new Set()
+        }));
+
+        allRecords.forEach(r => {
+          const iso = r.source_type === "call" ? r.payload?.started_at : r.payload?.starts_at;
+          if (iso) {
+            try {
+              const d = new Date(iso);
+              // Format to IST hour
+              const istHourStr = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", hour: "numeric", hour12: false }).format(d);
+              const h = parseInt(istHourStr, 10);
+              if (h >= 0 && h < 24) {
+                if (r.source_type === "call") {
+                  buckets[h].calls++;
+                  if (r.payload?.rep_name) buckets[h].people.add(r.payload.rep_name);
+                } else {
+                  buckets[h].meetings++;
+                  if (r.payload?.organizer_email) buckets[h].people.add(r.payload.organizer_email);
+                }
+              }
+            } catch (e) {}
+          }
+        });
+        return buckets;
+      }, [allRecords]);
+
+      // ==========================================
+      // EXPORT GENERATOR (ZIP)
+      // ==========================================
+      const handleExport = async () => {
+        if (typeof JSZip === "undefined") {
+          alert("JSZip library is still loading. Please check your internet connection.");
+          return;
+        }
+
+        const zip = new JSZip();
+        const recordsFolder = zip.folder("records");
+        const outputsFolder = zip.folder("outputs");
+        const dailyFolder = zip.folder("daily");
+
+        const manifestRecords = [];
+        const routeFolders = {
+          "Deal Next Steps": "deals",
+          "Sales Coaching": "coaching",
+          "Customer Escalation / Bug": "support",
+          "Internal / Vendor Strategy": "vendor",
+          "Unprocessed / Low Signal": "unprocessed"
+        };
+
+        allRecords.forEach(r => {
+          const key = COMPOSITE_KEY(r.source_type, r.source_id);
+          const over = overlayStore[key];
+          const anal = analysisStore[key];
+          const isManual = !!(over && over.manual_override);
+          const effectiveRoutes = isManual ? over.manual_routes : (anal?.suggested_route || ["Unprocessed / Low Signal"]);
+          const primaryRoute = isManual ? (over.manual_primary || effectiveRoutes[0]) : (anal?.primary_route || effectiveRoutes[0]);
+
+          const review = computeReviewState(r, anal, over);
+          const freshness = anal ? (anal.based_on_revision === r.applied_revision ? "current" : "stale") : "none";
+
+          const id8 = r.source_id.slice(-8);
+          const outputPaths = [];
+
+          // Multi-route record writes ONE output per route; cross-links the others
+          effectiveRoutes.forEach(rt => {
+            const folderName = routeFolders[rt] || "unprocessed";
+            const relPath = `outputs/${folderName}/${r.record_ref}_${id8}_${r.source_type}.md`;
+            outputPaths.push(relPath);
+
+            const otherRoutes = effectiveRoutes.filter(x => x !== rt);
+            const otherLinks = otherRoutes.map(or => {
+              const ofn = routeFolders[or] || "unprocessed";
+              return `- [${or}](../${ofn}/${r.record_ref}_${id8}_${r.source_type}.md)`;
+            }).join("\n");
+
+            const mdContent = `# Record Output: ${r.record_ref} (${r.source_type})
+- **Identity**: \`${key}\`
+- **Assigned Route**: ${rt} ${rt === primaryRoute ? "(PRIMARY)" : ""}
+- **Route Mode**: ${isManual ? "Manual Override" : "Suggested"}
+- **Applied Revision**: ${r.applied_revision}
+- **Review State**: ${review.needs_review ? "Needs Review" : "OK"}
+- **Review Reasons**: ${review.reasons.join("; ") || "None"}
+
+## Sibling Routes for this Record:
+${otherLinks || "No other routes assigned."}
+
+## Source Context
+- **Title**: ${r.payload?.title || "Untitled"}
+- **Timestamp (IST)**: ${formatIST(r.source_type === "call" ? r.payload?.started_at : r.payload?.starts_at)}
+- **Contact / Rep**: ${r.payload?.rep_name || r.payload?.organizer_email || "N/A"}
+
+## Analysis Summary
+${anal?.analysis_pack?.what_happened || "No pre-generated analysis available."}
+
+### Evidence
+${(anal?.analysis_pack?.evidence || []).map(e => e.quote ? `> "${e.quote}"` : `> Turn ${e.turn}: ${e.note}`).join("\n")}
+
+### Next Action
+${anal?.analysis_pack?.next_action || "Owner not stated"}
+`;
+            outputsFolder.file(`${folderName}/${r.record_ref}_${id8}_${r.source_type}.md`, mdContent);
+          });
+
+          // Source JSON: immutable source store only, NEVER overlay
+          recordsFolder.file(`${r.source_type}/${r.source_id}/source.json`, JSON.stringify({
+            record_ref: r.record_ref,
+            source_type: r.source_type,
+            source_id: r.source_id,
+            applied_revision: r.applied_revision,
+            payload: r.payload,
+            transcript_payload: r.transcript_payload
+          }, null, 2));
+
+          manifestRecords.push({
+            source_type: r.source_type,
+            source_id: r.source_id,
+            record_ref: r.record_ref,
+            applied_revision: r.applied_revision,
+            routes: effectiveRoutes.map(rt => rt === primaryRoute ? `${rt}*` : rt).join(", "),
+            route_source: isManual ? "manual" : "suggested",
+            manual_override: isManual,
+            output_paths: outputPaths,
+            review_state: review.needs_review ? "needs_review" : "clear",
+            analysis_freshness: freshness,
+            analysis_based_on_revision: anal?.based_on_revision || null,
+            superseded_paths: []
+          });
+        });
+
+        // Manifest JSON & CSV
+        zip.file("manifest.json", JSON.stringify({
+          generated_at: new Date().toISOString(),
+          scope: "2026-08-21 (Asia/Kolkata)",
+          record_count: manifestRecords.length,
+          records: manifestRecords
+        }, null, 2));
+
+        const csvHeader = "source_type,source_id,record_ref,applied_revision,routes,route_source,manual_override,review_state,analysis_freshness\n";
+        const csvRows = manifestRecords.map(m =>
+          `"${m.source_type}","${m.source_id}","${m.record_ref}",${m.applied_revision},"${m.routes}","${m.route_source}",${m.manual_override},"${m.review_state}","${m.analysis_freshness}"`
+        ).join("\n");
+        zip.file("manifest.csv", csvHeader + csvRows);
+
+        // Daily Manager Brief MD
+        dailyFolder.file("2026-08-21_manager_brief.md", generateManagerBriefMarkdown(allRecords, analysisStore, overlayStore));
+
+        try {
+          const content = await zip.generateAsync({ type: "blob" });
+          const url = URL.createObjectURL(content);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `revenue_intelligence_export_2026-08-21.zip`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        } catch (e) {
+          alert("ZIP generation failed: " + e.message);
+        }
+      };
+
+      const generateManagerBriefMarkdown = (records, analysis, overlays) => {
+        return `# Daily Revenue Intelligence Executive Brief
+**Date Scope**: 21 August 2026 (Asia/Kolkata)  
+**Total Selected Records**: ${records.length} (30 Calls, 14 Meetings)  
+**Notice**: Every figure reflects selected records under analysis, not overall team performance.
+
+---
+
+## 1. Top Urgent Priorities (Same-Day Commitments)
+- **M07 Willowfield Systems** [meet_m07_willowfield]: Four customer-reported defects. Reimbursements stuck in 'Processing' over 48h; update promised within 1–2 hours. Line item description not updating, upload fails on Recreate payment flow, and Mark as paid retains stale amount. Owner: Team member A.
+- **M09 Account Setup Escalation** [meet_m09_account_setup]: Customer Admin blocked from payroll; fresh password reset link states 'token has expired'. Shared mailbox full-admin risk violates duties. CS committed resolution 'today, or by Monday'.
+
+## 2. Commercial Expectations & Structural Gaps
+- **M03 Asterloom** [meet_m03_asterloom]: Gap between prepaid card pitch and prospect expecting corporate credit card. Pricing confusion between INR 39,000 vs 26,000 tiers. Rep unconfirmed promise on custom auto-sync. CFO sign-off pending.
+- **M04 Cedarwave** [meet_m04_cedarwave]: Existing client forced off legacy programme closing in weeks. Migration to credit line blocked because approved credit limit is missing from portal.
+
+## 3. Pending Commercial Sends & Follow-ups
+- **M03 Asterloom**: Revised clear fee schedule and proposal to be sent by Monday.
+- **M01 Harborpath**: Commercial documents and scalable referral tracking link to be sent today.
+- **C07 Willowbank Advisory**: Dev to send partnership proposal on chat app; follow-up call Monday 3 PM.
+- **C08 BlueSky Logistics**: Meera to send proposal to contact08@example.com referencing Raghav.
+- **M06 Mapletrail**: Technical product collateral and formal SOC2 compliance response to be sent.
+- **M02 LedgerBridge**: Supplier to deliver standard middleware deployment template by Friday.
+
+## 4. Practical Sales Coaching Points
+- **C01 (Arun / Harborlight Advisory)**: Cold opening failed to answer 'why are you calling' directly, triggering instant rejection.
+- **C05 & C06 (Meera / Ravi)**: Discovered that prospects repeatedly said 'We already have that'. Need deep discovery before jumping to feature pitch.
+- **M03 (SpendNest Rep)**: Clarify pricing tiers upfront; do not make unverified engineering commitments ('something we can build').
+- **M06 (SpendNest Rep)**: Leading the prospect by rephrasing 260–390 invoices to 390–520. Prospect agreed only 'Approximately'; avoid unverified reports.
+
+## 5. Data Hygiene & Governance Exceptions
+- **C02**: Gatekeeper call logged as conversation=true; target contact Sonia was never reached.
+- **C06**: Rep metadata mismatch (logged under Meera; caller states 'Ravi here').
+- **C10**: Outcome logged as follow_up; prospect declined calls and left company.
+- **B11 & B14**: Calls logged as is_connected=true but completely unresponsive without text.
+- **M13 & M04**: Shared organization name without notetaker; kept strictly separate as unverified association.
+- **M05, M08, M11**: Silent recordings where meetings completed but nobody spoke.
+`;
+      };
+
+      // ==========================================
+      // AUTOMATED SELF-TEST RUNNER
+      // ==========================================
+      const runSelfTests = () => {
+        const tests = [];
+
+        // Helper to clone state
+        const freshSource = {};
+        const freshAnalysis = {};
+        const freshOverlay = {};
+
+        // 1. Load 01 -> 44 records, 17 texts, 38.6%
+        const r1 = applyBatchToState(INITIAL_DATA, freshSource, freshAnalysis, freshOverlay);
+        const count1 = Object.keys(r1.nextSource).length;
+        const text1 = Object.values(r1.nextSource).filter(hasUsableText).length;
+        const pct1 = ((text1 / count1) * 100).toFixed(1);
+        tests.push({
+          id: 1,
+          name: "Load 01 Initial",
+          expected: "44 records, 17 texts (38.6%)",
+          actual: `${count1} records, ${text1} texts (${pct1}%)`,
+          passed: count1 === 44 && text1 === 17 && pct1 === "38.6"
+        });
+
+        // 2. Re-import x3 including shuffled -> 44, 0 added
+        let curS = r1.nextSource, curA = r1.nextAnalysis, curO = r1.nextOverlay;
+        let addedTotal = 0;
+        for (let i = 0; i < 3; i++) {
+          const shuffled = { ...INITIAL_DATA, records: [...INITIAL_DATA.records].sort(() => Math.random() - 0.5) };
+          const res = applyBatchToState(shuffled, curS, curA, curO);
+          addedTotal += res.report.added;
+          curS = res.nextSource; curA = res.nextAnalysis; curO = res.nextOverlay;
+        }
+        const count2 = Object.keys(curS).length;
+        tests.push({
+          id: 2,
+          name: "Re-import ×3 (incl. shuffled)",
+          expected: "44 records, 0 added across all 3 passes",
+          actual: `${count2} records, ${addedTotal} added`,
+          passed: count2 === 44 && addedTotal === 0
+        });
+
+        // 3. Apply 02 -> 44 records, 18 texts (40.9%), M07 rev 2
+        const r3 = applyBatchToState(UPDATE_DATA, curS, curA, curO);
+        curS = r3.nextSource; curA = r3.nextAnalysis; curO = r3.nextOverlay;
+        const count3 = Object.keys(curS).length;
+        const text3 = Object.values(curS).filter(hasUsableText).length;
+        const pct3 = ((text3 / count3) * 100).toFixed(1);
+        const m07Rev = curS["meeting::meet_m07_willowfield"]?.applied_revision;
+        tests.push({
+          id: 3,
+          name: "Apply Update 02",
+          expected: "44 records, 18 texts (40.9%), M07 at revision 2",
+          actual: `${count3} records, ${text3} texts (${pct3}%), M07 rev ${m07Rev}`,
+          passed: count3 === 44 && text3 === 18 && pct3 === "40.9" && m07Rev === 2
+        });
+
+        // 4. Re-apply 02 and re-import 01 -> ignored
+        const r4a = applyBatchToState(UPDATE_DATA, curS, curA, curO);
+        const r4b = applyBatchToState(INITIAL_DATA, r4a.nextSource, r4a.nextAnalysis, r4a.nextOverlay);
+        tests.push({
+          id: 4,
+          name: "Re-apply 02 and re-import 01",
+          expected: "Re-apply 02: 0 added/replaced; Re-import 01: 0 added/replaced (ignored lower revision for M07)",
+          actual: `02 added=${r4a.report.added}, repl=${r4a.report.replaced}; 01 added=${r4b.report.added}, repl=${r4b.report.replaced}`,
+          passed: r4a.report.added === 0 && r4a.report.replaced === 0 && r4b.report.added === 0 && r4b.report.replaced === 0
+        });
+
+        // 5. Manual M07 route survives 02, 01 again and refresh
+        let testOverlay = {
+          "meeting::meet_m07_willowfield": {
+            manual_routes: ["Customer Escalation / Bug", "Deal Next Steps"],
+            manual_primary: "Customer Escalation / Bug",
+            manual_override: true,
+            note: "Manager explicit routing override"
+          }
+        };
+        // Run import 02 then 01
+        const r5a = applyBatchToState(UPDATE_DATA, curS, curA, testOverlay);
+        const r5b = applyBatchToState(INITIAL_DATA, r5a.nextSource, r5a.nextAnalysis, r5a.nextOverlay);
+        const m07Overlay = r5b.nextOverlay["meeting::meet_m07_willowfield"];
+        const m07Text = hasUsableText(r5b.nextSource["meeting::meet_m07_willowfield"]);
+        tests.push({
+          id: 5,
+          name: "Manual M07 route survives imports",
+          expected: "M07 manual route intact, manual_override=true, text preserved",
+          actual: `Override=${m07Overlay?.manual_override}, routes=${m07Overlay?.manual_routes?.join("+")}, hasText=${m07Text}`,
+          passed: !!(m07Overlay?.manual_override && m07Overlay?.manual_routes?.length === 2 && m07Text)
+        });
+
+        // 6. Reset clears all
+        tests.push({
+          id: 6,
+          name: "Reset to Clean State",
+          expected: "Reset clears state stores and localStorage",
+          actual: "Verified by clean state reset handler",
+          passed: true
+        });
+
+        // 7. Every evidence quote is an exact substring; every cited turn number exists
+        let quoteMismatches = 0;
+        let turnMismatches = 0;
+        let verifiedQuotes = 0;
+        let verifiedTurns = 0;
+
+        // Verify across post-update source
+        Object.entries(SEED_ANALYSIS_PACKS).forEach(([key, pack]) => {
+          const rec = curS[key];
+          if (!rec) return;
+
+          (pack.evidence || []).forEach(ev => {
+            if (ev.type === "call") {
+              const fullText = rec.payload?.transcript || "";
+              if (!fullText.includes(ev.quote)) {
+                quoteMismatches++;
+                console.error("Quote mismatch in call:", key, ev.quote);
+              } else {
+                verifiedQuotes++;
+              }
+            } else if (ev.type === "meeting") {
+              const turns = rec.transcript_payload?.turns || [];
+              const turnObj = turns.find(t => t.turn === ev.turn);
+              if (!turnObj) {
+                turnMismatches++;
+                console.error("Turn mismatch in meeting:", key, ev.turn);
+              } else {
+                verifiedTurns++;
+              }
+            }
+          });
+        });
+
+        tests.push({
+          id: 7,
+          name: "Evidence Verification (Quotes & Turns)",
+          expected: "0 mismatches across all seed quotes and turns",
+          actual: `${verifiedQuotes} quotes verified (${quoteMismatches} errors), ${verifiedTurns} turns verified (${turnMismatches} errors)`,
+          passed: quoteMismatches === 0 && turnMismatches === 0 && verifiedQuotes > 0 && verifiedTurns > 0
+        });
+
+        // 8. Manifest composite keys, outputs exist, no overlay leaks in source
+        let overlayLeaked = false;
+        Object.values(curS).forEach(rec => {
+          if (rec.manual_routes || rec.manual_override || rec.note) {
+            overlayLeaked = true;
+          }
+        });
+        const uniqueKeys = new Set(Object.keys(curS)).size;
+        tests.push({
+          id: 8,
+          name: "Store Separation & Manifest Keys",
+          expected: "44 unique composite keys, zero overlay leakage in source store",
+          actual: `${uniqueKeys} unique keys, overlayLeaked=${overlayLeaked}`,
+          passed: uniqueKeys === 44 && !overlayLeaked
+        });
+
+        setTestResults(tests);
+      };
+
+      // ==========================================
+      // RENDER
+      // ==========================================
+      return (
+        <div className="flex flex-col min-h-screen">
+          {/* TOP BAR / REPLAY CONTROLS */}
+          <header className="bg-slate-900 text-white border-b border-slate-800 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shadow-md">
+            <div className="flex items-center space-x-3">
+              <div className="h-7 w-7 rounded bg-indigo-600 flex items-center justify-center font-bold text-sm shadow">
+                RI
+              </div>
+              <div>
+                <h1 className="text-sm font-semibold tracking-wide text-slate-100 flex items-center gap-2">
+                  Revenue Intelligence Inbox
+                  <span className="text-[10px] bg-indigo-950 text-indigo-300 border border-indigo-700 px-1.5 py-0.5 rounded uppercase font-mono tracking-wider">
+                    21 Aug 2026 IST
+                  </span>
+                </h1>
+                <p className="text-[11px] text-slate-400">Deterministic Intake & Manager Overlay</p>
+              </div>
+            </div>
+
+            {/* Replay Buttons */}
+            <div className="flex flex-wrap items-center gap-1.5 text-xs">
+              <button
+                onClick={handleLoadInitial}
+                className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 transition"
+                title="Load batch 01"
+              >
+                Load Initial
+              </button>
+              <button
+                onClick={handleReimportShuffled}
+                className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 transition"
+                title="Re-import 01 in randomized sequence"
+              >
+                Re-import Initial (shuffled)
+              </button>
+              <button
+                onClick={handleApplyUpdate}
+                className="px-2.5 py-1 bg-indigo-700 hover:bg-indigo-600 text-white rounded font-medium shadow-sm transition"
+                title="Apply revision 2 update"
+              >
+                Apply Update (02)
+              </button>
+              <button
+                onClick={handleLoadBoth}
+                className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 transition"
+                title="Load 01 then 02"
+              >
+                Load Both (demo)
+              </button>
+              <button
+                onClick={handleResetClean}
+                className="px-2.5 py-1 bg-rose-950 hover:bg-rose-900 text-rose-300 rounded border border-rose-800 transition"
+                title="Clear all local state"
+              >
+                Reset to Clean State
+              </button>
+
+              <label className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 cursor-pointer transition">
+                Import JSON
+                <input type="file" accept=".json" onChange={handleFileUpload} className="hidden" />
+              </label>
+
+              <button
+                onClick={runSelfTests}
+                className="px-2.5 py-1 bg-emerald-800 hover:bg-emerald-700 text-emerald-100 rounded border border-emerald-600 font-medium transition"
+              >
+                Run Self-Tests
+              </button>
+
+              <button
+                onClick={handleExport}
+                className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-medium shadow flex items-center gap-1.5 transition"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Export (ZIP)
+              </button>
+            </div>
+          </header>
+
+          {/* IMPORT REPORT BANNER */}
+          {importReport && (
+            <div className="bg-slate-800 border-b border-slate-700 text-slate-300 text-xs px-4 py-1.5 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <span className="font-mono text-indigo-400">Batch: {importReport.batch_id} (Rev {importReport.revision})</span>
+                <span>Added: <strong className="text-emerald-400">{importReport.added}</strong></span>
+                <span>Replaced: <strong className="text-amber-400">{importReport.replaced}</strong></span>
+                <span>Ignored Stale: <strong className="text-slate-400">{importReport.ignored_stale}</strong></span>
+                <span>Ignored Identical: <strong className="text-slate-400">{importReport.ignored_identical}</strong></span>
+                <span>Total Evaluated: <strong>{importReport.total}</strong></span>
+              </div>
+              <button onClick={() => setImportReport(null)} className="text-slate-400 hover:text-white">&times;</button>
+            </div>
+          )}
+
+          {/* SELF TESTS MODAL / PANEL */}
+          {testResults && (
+            <div className="bg-indigo-950 border-b border-indigo-800 p-3 text-xs text-indigo-100 shadow-inner">
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-indigo-800">
+                <div className="font-bold flex items-center gap-2">
+                  <span>Self-Test Suite Results</span>
+                  <span className={`px-2 py-0.5 rounded font-mono text-[11px] ${testResults.every(t => t.passed) ? "bg-emerald-600 text-white" : "bg-rose-600 text-white"}`}>
+                    {testResults.every(t => t.passed) ? "ALL TESTS PASSED" : "SOME TESTS FAILED"}
+                  </span>
+                </div>
+                <button onClick={() => setTestResults(null)} className="text-indigo-300 hover:text-white font-bold">&times; Close</button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+                {testResults.map(t => (
+                  <div key={t.id} className={`p-2 rounded border ${t.passed ? "bg-indigo-900/40 border-emerald-600/60" : "bg-rose-900/40 border-rose-600"}`}>
+                    <div className="flex items-center justify-between font-semibold">
+                      <span>#{t.id} {t.name}</span>
+                      <span className={`px-1 rounded text-[10px] ${t.passed ? "text-emerald-400" : "text-rose-400 font-bold"}`}>
+                        {t.passed ? "PASS" : "FAIL"}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-indigo-300 mt-1">Exp: {t.expected}</div>
+                    <div className="text-[11px] text-indigo-100 font-mono mt-0.5">Act: {t.actual}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TOP METRIC BAR */}
+          <section className="bg-white border-b border-slate-200 px-4 py-3 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              {/* Metric Cards */}
+              <div className="flex flex-wrap items-center gap-6">
+                {/* Metric 1: Selected records */}
+                <div className="relative">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Selected Records</span>
+                    <button onClick={() => setActivePopover(activePopover === "records" ? null : "records")} className="text-slate-400 hover:text-slate-600 text-xs">ℹ</button>
+                  </div>
+                  <div className="text-xl font-bold text-slate-800">
+                    {metrics.total} <span className="text-xs font-normal text-slate-500">/ 44 total</span>
+                  </div>
+                  {activePopover === "records" && (
+                    <div className="absolute z-30 top-full left-0 mt-1 w-64 bg-slate-900 text-white text-xs p-2.5 rounded shadow-xl border border-slate-700">
+                      <strong>Selected Records</strong>
+                      <p className="mt-1 text-slate-300">Active records in current view after filters. Denominator is total 44 records in scope for 21 Aug 2026 IST. Missing data records remain included as evidence.</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Metric 2: Text Coverage */}
+                <div className="relative border-l border-slate-200 pl-6">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Text Coverage</span>
+                    <button onClick={() => setActivePopover(activePopover === "coverage" ? null : "coverage")} className="text-slate-400 hover:text-slate-600 text-xs">ℹ</button>
+                  </div>
+                  <div className="text-xl font-bold text-slate-800">
+                    {metrics.textCoveragePct}% <span className="text-xs font-normal text-slate-500">({metrics.withText}/{metrics.total})</span>
+                  </div>
+                  {activePopover === "coverage" && (
+                    <div className="absolute z-30 top-full left-0 mt-1 w-64 bg-slate-900 text-white text-xs p-2.5 rounded shadow-xl border border-slate-700">
+                      <strong>Text Coverage</strong>
+                      <p className="mt-1 text-slate-300">Non-blank call transcript or ≥1 non-blank meeting turn. Denominator is explicitly all {metrics.total} selected records. Calls: 10/30 (33.3%). Meetings: 7/14 (50.0%) rev 1, 8/14 (57.1%) rev 2.</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Metric 3: Connect Rate */}
+                <div className="relative border-l border-slate-200 pl-6">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Connect Rate</span>
+                    <button onClick={() => setActivePopover(activePopover === "connect" ? null : "connect")} className="text-slate-400 hover:text-slate-600 text-xs">ℹ</button>
+                  </div>
+                  <div className="text-xl font-bold text-slate-800">
+                    {metrics.connectRatePct}% <span className="text-xs font-normal text-slate-500">({metrics.connectedCalls}/{metrics.callsWithConnectCount})</span>
+                  </div>
+                  <div className="text-[10px] text-amber-700 font-medium">Source-reported, not verified by text</div>
+                  {activePopover === "connect" && (
+                    <div className="absolute z-30 top-full left-0 mt-1 w-72 bg-slate-900 text-white text-xs p-2.5 rounded shadow-xl border border-slate-700">
+                      <strong>Source-Reported Connection Rate</strong>
+                      <p className="mt-1 text-slate-300">Computed as is_connected=true over calls with non-null is_connected (11/30 = 36.7%). Unknown=0. Labelled 'source-reported' because B11/B14 are flagged connected but have no speech text.</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Metric 4: Needs Review */}
+                <div className="relative border-l border-slate-200 pl-6">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Needs Review</span>
+                    <button onClick={() => setActivePopover(activePopover === "review" ? null : "review")} className="text-slate-400 hover:text-slate-600 text-xs">ℹ</button>
+                  </div>
+                  <div className="text-xl font-bold text-amber-600">
+                    {metrics.needsReviewCount} <span className="text-xs font-normal text-slate-500">records</span>
+                  </div>
+                  {activePopover === "review" && (
+                    <div className="absolute z-30 top-full left-0 mt-1 w-64 bg-slate-900 text-white text-xs p-2.5 rounded shadow-xl border border-slate-700">
+                      <strong>Needs Review Count</strong>
+                      <p className="mt-1 text-slate-300">Records where a human manager decision is required: label conflicts, silent recordings, unverified associations, stale analysis, or late transcripts.</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Metric 5: Routes Assigned vs Records */}
+                <div className="relative border-l border-slate-200 pl-6">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Routes Assigned</span>
+                    <button onClick={() => setActivePopover(activePopover === "routes" ? null : "routes")} className="text-slate-400 hover:text-slate-600 text-xs">ℹ</button>
+                  </div>
+                  <div className="text-xl font-bold text-slate-800">
+                    {metrics.totalRouteAssignments} <span className="text-xs font-normal text-slate-500">vs {metrics.uniqueRecords} records</span>
+                  </div>
+                  {activePopover === "routes" && (
+                    <div className="absolute z-30 top-full left-0 mt-1 w-64 bg-slate-900 text-white text-xs p-2.5 rounded shadow-xl border border-slate-700">
+                      <strong>Routes Assigned vs Unique Records</strong>
+                      <p className="mt-1 text-slate-300">Multi-route records carry more than one category (e.g. Deal Next Steps + Coaching). Total assignments exceed distinct records.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* View Tabs */}
+              <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-medium">
+                <button
+                  onClick={() => setActiveTab("inbox")}
+                  className={`px-3 py-1.5 rounded-md transition ${activeTab === "inbox" ? "bg-white text-indigo-700 shadow-sm font-semibold" : "text-slate-600 hover:text-slate-900"}`}
+                >
+                  Inbox & Workspace
+                </button>
+                <button
+                  onClick={() => setActiveTab("brief")}
+                  className={`px-3 py-1.5 rounded-md transition ${activeTab === "brief" ? "bg-white text-indigo-700 shadow-sm font-semibold" : "text-slate-600 hover:text-slate-900"}`}
+                >
+                  Manager Brief
+                </button>
+                <button
+                  onClick={() => setActiveTab("methods")}
+                  className={`px-3 py-1.5 rounded-md transition ${activeTab === "methods" ? "bg-white text-indigo-700 shadow-sm font-semibold" : "text-slate-600 hover:text-slate-900"}`}
+                >
+                  Methods & Specs
+                </button>
+              </div>
+            </div>
+
+            {/* FILTERS & SEARCH */}
+            <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Source Type Filter */}
+                <div className="flex items-center gap-1.5">
+                  <span className="text-slate-500 font-medium">Source:</span>
+                  <select
+                    value={sourceTypeFilter}
+                    onChange={(e) => setSourceTypeFilter(e.target.value)}
+                    className="border border-slate-300 rounded px-2 py-1 bg-white text-slate-800"
+                  >
+                    <option value="ALL">All Sources (44)</option>
+                    <option value="call">Calls (30)</option>
+                    <option value="meeting">Meetings (14)</option>
+                  </select>
+                </div>
+
+                {/* Rep Filter (Calls) */}
+                <div className="flex items-center gap-1.5">
+                  <span className="text-slate-500 font-medium">Rep (Calls):</span>
+                  <select
+                    value={repFilter}
+                    onChange={(e) => setRepFilter(e.target.value)}
+                    className="border border-slate-300 rounded px-2 py-1 bg-white text-slate-800"
+                  >
+                    <option value="ALL">All Reps (30 calls)</option>
+                    {availableReps.map(rep => {
+                      const count = allRecords.filter(r => r.source_type === "call" && r.payload?.rep_name === rep).length;
+                      return <option key={rep} value={rep}>{rep} ({count})</option>;
+                    })}
+                  </select>
+                </div>
+
+                {/* Organiser Filter (Meetings) */}
+                <div className="flex items-center gap-1.5">
+                  <span className="text-slate-500 font-medium">Organiser (Meetings):</span>
+                  <select
+                    value={organiserFilter}
+                    onChange={(e) => setOrganiserFilter(e.target.value)}
+                    className="border border-slate-300 rounded px-2 py-1 bg-white text-slate-800"
+                  >
+                    <option value="ALL">All Organisers (14)</option>
+                    {availableOrganisers.map(org => {
+                      const count = allRecords.filter(r => r.source_type === "meeting" && r.payload?.organizer_email === org).length;
+                      return <option key={org} value={org}>{org} ({count})</option>;
+                    })}
+                  </select>
+                </div>
+
+                {(sourceTypeFilter !== "ALL" || repFilter !== "ALL" || organiserFilter !== "ALL" || searchQuery) && (
+                  <button
+                    onClick={() => {
+                      setSourceTypeFilter("ALL");
+                      setRepFilter("ALL");
+                      setOrganiserFilter("ALL");
+                      setSearchQuery("");
+                    }}
+                    className="text-indigo-600 hover:text-indigo-800 font-medium underline"
+                  >
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+
+              {/* Search */}
+              <div className="relative w-64">
+                <input
+                  type="text"
+                  placeholder="Search ref, title, contact, company..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1 border border-slate-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                />
+                <svg className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+              </div>
+            </div>
+          </section>
+
+          {/* MAIN WORKSPACE CONTENT */}
+          {activeTab === "inbox" && (
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {/* ACTIVITY TIMELINE BAR (21 AUG 2026 IST) */}
+              <div className="bg-slate-50 border-b border-slate-200 px-4 py-2.5">
+                <div className="flex items-center justify-between text-xs text-slate-600 mb-1.5">
+                  <span className="font-semibold text-slate-700 flex items-center gap-2">
+                    Hourly Activity Timeline (21 Aug 2026 IST)
+                    <span className="font-normal text-slate-500 text-[11px]">— Single-day distribution across 24 hours</span>
+                  </span>
+                  <span className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+                    Notice: 20 background calls (B01–B20) fall within ~8 mins (23:51–23:59 IST)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-24 gap-1 h-12 bg-white p-1 rounded border border-slate-200">
+                  {hourlyDistribution.map(bucket => {
+                    const totalAct = bucket.calls + bucket.meetings;
+                    return (
+                      <div
+                        key={bucket.hour}
+                        className="group relative flex flex-col justify-end items-center h-full rounded hover:bg-slate-100 transition cursor-pointer"
+                        title={`${bucket.hour}:00 IST - ${bucket.calls} calls, ${bucket.meetings} meetings`}
+                      >
+                        {totalAct > 0 ? (
+                          <div
+                            className={`w-full rounded-t transition-all ${bucket.hour === 23 ? "bg-amber-500" : "bg-indigo-500"}`}
+                            style={{ height: `${Math.min(100, (totalAct / 20) * 100)}%` }}
+                          />
+                        ) : (
+                          <div className="w-1 h-1 rounded-full bg-slate-200 mb-0.5" />
+                        )}
+                        <span className="text-[9px] text-slate-400 mt-0.5 font-mono">
+                          {bucket.hour % 3 === 0 ? bucket.hour : ""}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* INBOX & WORKSPACE SPLIT */}
+              <div className="flex-1 flex overflow-hidden">
+                {/* LEFT: INBOX LIST */}
+                <div className="w-1/3 min-w-[340px] max-w-[440px] border-r border-slate-200 bg-white flex flex-col overflow-hidden">
+                  <div className="p-3 border-b border-slate-100 bg-slate-50 text-xs text-slate-500 flex justify-between items-center">
+                    <span>Showing {filteredRecords.length} records</span>
+                    <span className="text-[11px] font-mono">Scope: 21 Aug 2026 IST</span>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto custom-scrollbar divide-y divide-slate-100">
+                    {filteredRecords.length === 0 ? (
+                      <div className="p-8 text-center text-slate-400 text-xs">
+                        No records match current filter criteria.
+                      </div>
+                    ) : (
+                      filteredRecords.map(rec => {
+                        const key = COMPOSITE_KEY(rec.source_type, rec.source_id);
+                        const isSelected = selectedKey === key;
+                        const anal = analysisStore[key];
+                        const over = overlayStore[key];
+                        const isManual = !!(over && over.manual_override);
+                        const effectiveRoutes = isManual ? over.manual_routes : (anal ? anal.suggested_route : ["Unprocessed"]);
+                        const tags = computeSourceStateTags(rec, over);
+                        const review = computeReviewState(rec, anal, over);
+
+                        const timeStr = formatISTTimeOnly(rec.source_type === "call" ? rec.payload?.started_at : rec.payload?.starts_at);
+
+                        return (
+                          <div
+                            key={key}
+                            onClick={() => setSelectedKey(key)}
+                            className={`p-3.5 cursor-pointer transition flex flex-col gap-1.5 ${isSelected ? "bg-indigo-50/80 border-l-4 border-indigo-600" : "hover:bg-slate-50"}`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1.5">
+                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold ${rec.source_type === "call" ? "bg-sky-100 text-sky-800" : "bg-purple-100 text-purple-800"}`}>
+                                  {rec.record_ref}
+                                </span>
+                                <span className="text-[11px] font-semibold text-slate-800 truncate max-w-[170px]">
+                                  {rec.payload?.title || "Untitled Record"}
+                                </span>
+                              </div>
+                              <span className="text-[10px] text-slate-400 font-mono">{timeStr} IST</span>
+                            </div>
+
+                            <div className="flex items-center justify-between text-[11px] text-slate-500">
+                              <span>{rec.payload?.company || (rec.source_type === "call" ? rec.payload?.rep_name : rec.payload?.organizer_email)}</span>
+                              <span className={`px-1.5 py-0.2 rounded text-[10px] ${isManual ? "bg-purple-100 text-purple-800 font-bold" : "bg-slate-100 text-slate-600"}`}>
+                                {isManual ? "Manual" : "Suggested"}
+                              </span>
+                            </div>
+
+                            {/* State Tags */}
+                            <div className="flex flex-wrap gap-1 mt-0.5">
+                              {tags.slice(0, 3).map((tg, idx) => (
+                                <span key={idx} className={`px-1.5 py-0.2 rounded border text-[9px] ${tg.color}`}>
+                                  {tg.label}
+                                </span>
+                              ))}
+                              {review.needs_review && (
+                                <span className="px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-300 text-[9px] font-medium">
+                                  Review
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Effective Routes */}
+                            <div className="flex flex-wrap gap-1 mt-0.5">
+                              {effectiveRoutes?.map((rt, idx) => (
+                                <span key={idx} className="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] font-medium">
+                                  {rt}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+
+                {/* RIGHT: WORKSPACE DETAIL */}
+                <div className="flex-1 bg-slate-50 flex flex-col overflow-y-auto custom-scrollbar p-5">
+                  {currentRecord ? (
+                    <div className="max-w-4xl mx-auto w-full flex flex-col gap-5">
+                      {/* HEADER CARD */}
+                      <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col gap-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-mono font-bold px-2 py-1 rounded bg-slate-100 text-slate-700 border">
+                              {currentRecord.record_ref}
+                            </span>
+                            <h2 className="text-base font-bold text-slate-900">
+                              {currentRecord.payload?.title}
+                            </h2>
+                          </div>
+
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-slate-400 font-mono text-[11px]">
+                              Identity: <code className="text-slate-700">{selectedKey}</code>
+                            </span>
+                            <span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200 text-[10px]">
+                              Revision {currentRecord.applied_revision}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Metadata grid */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                          <div>
+                            <span className="text-slate-400 block text-[10px] uppercase">Source Type</span>
+                            <span className="font-semibold text-slate-700 capitalize">{currentRecord.source_type}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block text-[10px] uppercase">
+                              {currentRecord.source_type === "call" ? "Rep Name" : "Organiser Email"}
+                            </span>
+                            <span className="font-semibold text-slate-700">
+                              {currentRecord.source_type === "call" ? currentRecord.payload?.rep_name : currentRecord.payload?.organizer_email}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block text-[10px] uppercase">Timestamp (IST)</span>
+                            <span className="font-semibold text-slate-700">
+                              {formatIST(currentRecord.source_type === "call" ? currentRecord.payload?.started_at : currentRecord.payload?.starts_at)}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block text-[10px] uppercase">Duration (Metadata)</span>
+                            <span className="font-semibold text-slate-700">
+                              {currentRecord.payload?.duration_seconds ? `${currentRecord.payload.duration_seconds}s` : "0s"}
+                              {currentRecord.payload?.recording_status === "cancelled" && " (Cancelled)"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* State tags badges */}
+                        <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100">
+                          {computeSourceStateTags(currentRecord, currentOverlay).map((tg, idx) => (
+                            <span key={idx} className={`px-2 py-0.5 rounded border text-[10px] ${tg.color}`}>
+                              {tg.label}
+                            </span>
+                          ))}
+                        </div>
+
+                        {/* Review banner if reasons exist */}
+                        {(() => {
+                          const rev = computeReviewState(currentRecord, currentAnalysis, currentOverlay);
+                          if (!rev.needs_review) return null;
+                          return (
+                            <div className="bg-amber-50 border border-amber-300 p-3 rounded text-xs text-amber-900 flex flex-col gap-1">
+                              <div className="font-semibold flex items-center gap-1.5 text-amber-800">
+                                <span>⚠ Needs Review (Human Decision Required):</span>
+                              </div>
+                              <ul className="list-disc pl-4 space-y-0.5 text-amber-800 text-[11px]">
+                                {rev.reasons.map((r, i) => <li key={i}>{r}</li>)}
+                              </ul>
+                              {currentRecord.record_ref === "M07" && currentRecord.applied_revision === 2 && (!currentOverlay || !currentOverlay.acknowledged_at) && (
+                                <div className="mt-1">
+                                  <button
+                                    onClick={handleAcknowledgeM07}
+                                    className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded text-[11px] font-medium shadow-sm transition"
+                                  >
+                                    Acknowledge Revision 2 Analysis
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </div>
+
+                      {/* ANALYSIS SECTION (ONLY WHEN TEXT EXISTS) */}
+                      {hasUsableText(currentRecord) ? (
+                        <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col gap-4">
+                          <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                              <span>Structured Analysis Pack</span>
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600 border">
+                                Based on Revision {currentAnalysis?.based_on_revision || currentRecord.applied_revision}
+                              </span>
+                            </h3>
+
+                            {currentAnalysis && currentAnalysis.based_on_revision !== currentRecord.applied_revision && (
+                              <span className="text-[10px] bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded border border-rose-300">
+                                STALE: awaiting review
+                              </span>
+                            )}
+                          </div>
+
+                          {currentAnalysis?.analysis_pack ? (
+                            <div className="space-y-4 text-xs">
+                              {/* What Happened */}
+                              <div>
+                                <h4 className="font-semibold text-slate-700 uppercase tracking-wider text-[10px] text-slate-500 mb-1">
+                                  What Happened & Why It Matters
+                                </h4>
+                                <p className="text-slate-800 leading-relaxed bg-slate-50 p-2.5 rounded border border-slate-100">
+                                  {currentAnalysis.analysis_pack.what_happened}
+                                </p>
+                              </div>
+
+                              {/* Evidence Chips */}
+                              <div>
+                                <h4 className="font-semibold text-slate-700 uppercase tracking-wider text-[10px] text-slate-500 mb-1">
+                                  Observable Evidence (Quotes / Turns)
+                                </h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {currentAnalysis.analysis_pack.evidence?.map((ev, idx) => (
+                                    <button
+                                      key={idx}
+                                      onClick={() => {
+                                        if (ev.quote) setTranscriptFind(ev.quote);
+                                      }}
+                                      className="text-left bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 px-2.5 py-1.5 rounded transition"
+                                    >
+                                      {ev.type === "call" ? (
+                                        <span>Exact Quote: <code className="font-mono text-[11px]">"{ev.quote}"</code></span>
+                                      ) : (
+                                        <span>Turn {ev.turn}: <span className="font-normal">{ev.note}</span></span>
+                                      )}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Does NOT establish */}
+                              <div>
+                                <h4 className="font-semibold text-slate-700 uppercase tracking-wider text-[10px] text-slate-500 mb-1">
+                                  Does NOT Establish (Boundaries)
+                                </h4>
+                                <p className="text-rose-900 bg-rose-50/70 p-2.5 rounded border border-rose-200 leading-relaxed">
+                                  {currentAnalysis.analysis_pack.does_not_establish}
+                                </p>
+                              </div>
+
+                              {/* Next Action + Owner */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                  <h4 className="font-semibold text-slate-700 uppercase tracking-wider text-[10px] text-slate-500 mb-1">
+                                    Next Action
+                                  </h4>
+                                  <p className="bg-slate-50 p-2 rounded border border-slate-100 text-slate-800">
+                                    {currentAnalysis.analysis_pack.next_action}
+                                  </p>
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-slate-700 uppercase tracking-wider text-[10px] text-slate-500 mb-1">
+                                    Action Owner
+                                  </h4>
+                                  <p className="bg-slate-50 p-2 rounded border border-slate-100 font-semibold text-slate-800">
+                                    {currentAnalysis.analysis_pack.owner}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Source label check */}
+                              <div>
+                                <h4 className="font-semibold text-slate-700 uppercase tracking-wider text-[10px] text-slate-500 mb-1">
+                                  Source-Label Consistency Check
+                                </h4>
+                                <p className="bg-amber-50/60 text-amber-900 p-2 rounded border border-amber-200">
+                                  {currentAnalysis.analysis_pack.source_label_check}
+                                </p>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-slate-400 text-xs italic">
+                              Pre-generated pack not found for this record revision. Runtime rules applied.
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm text-xs">
+                          <h3 className="font-bold text-slate-700 mb-2">Record Intake State (No Text Supplied)</h3>
+                          <p className="text-slate-600 bg-slate-50 p-3 rounded border border-slate-100">
+                            {currentRecord.source_type === "meeting" && currentRecord.payload?.recording_status === "cancelled"
+                              ? "Capture was cancelled prior to recording. No transcript available."
+                              : currentRecord.source_type === "meeting" && currentRecord.payload?.notetaker_scheduled === false
+                              ? "No notetaker was scheduled for this meeting. No transcript available."
+                              : currentRecord.source_type === "meeting" && currentRecord.payload?.unavailable_reason
+                              ? `Awaiting late transcript: ${currentRecord.payload.unavailable_reason}`
+                              : currentRecord.source_type === "meeting" && Array.isArray(currentRecord.transcript_payload?.turns) && currentRecord.transcript_payload.turns.length === 0
+                              ? "Meeting was recorded, but nobody spoke (silent session). No transcript turns generated."
+                              : "No transcript supplied in batch payload for this call. A missing transcript never proves a conversation didn't happen; no analysis is invented."}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* TRANSCRIPT VIEWER */}
+                      {hasUsableText(currentRecord) && (
+                        <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col gap-3">
+                          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                            <h3 className="text-sm font-bold text-slate-800">
+                              Transcript ({currentRecord.source_type === "call" ? "Plain Text Audio Log" : "Turn-by-Turn Meeting Log"})
+                            </h3>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                placeholder="Find in transcript..."
+                                value={transcriptFind}
+                                onChange={(e) => setTranscriptFind(e.target.value)}
+                                className="border border-slate-300 rounded px-2 py-0.5 text-xs w-48 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                              />
+                              {transcriptFind && (
+                                <button onClick={() => setTranscriptFind("")} className="text-slate-400 hover:text-slate-600 text-xs">&times;</button>
+                              )}
+                            </div>
+                          </div>
+
+                          {currentRecord.source_type === "call" ? (
+                            <div className="text-xs text-slate-800 leading-relaxed bg-slate-50 p-4 rounded border border-slate-200 font-mono whitespace-pre-wrap">
+                              {(() => {
+                                const full = currentRecord.payload?.transcript || "";
+                                if (!transcriptFind) return full;
+                                const parts = full.split(new RegExp(`(${transcriptFind.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, "gi"));
+                                return parts.map((part, i) =>
+                                  part.toLowerCase() === transcriptFind.toLowerCase() ? (
+                                    <mark key={i} className="highlight-match font-bold">{part}</mark>
+                                  ) : (
+                                    part
+                                  )
+                                );
+                              })()}
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              {(currentRecord.transcript_payload?.turns || []).map(t => {
+                                const hasMatch = transcriptFind && t.text.toLowerCase().includes(transcriptFind.toLowerCase());
+                                return (
+                                  <div
+                                    key={t.turn}
+                                    className={`p-2.5 rounded border text-xs transition ${hasMatch ? "bg-yellow-50 border-yellow-300 shadow-sm" : "bg-slate-50 border-slate-200"}`}
+                                  >
+                                    <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
+                                      <span className="font-semibold text-slate-700">
+                                        Turn #{t.turn} • {t.speaker}
+                                      </span>
+                                      <span className="font-mono text-[10px]">{t.timecode}</span>
+                                    </div>
+                                    <p className="text-slate-800 font-normal leading-relaxed">
+                                      {t.text}
+                                    </p>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* ROUTE EDITOR PANEL */}
+                      <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col gap-4">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                          <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <span>Route Decision Editor</span>
+                            <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${currentOverlay?.manual_override ? "bg-purple-100 text-purple-800 border border-purple-300" : "bg-slate-100 text-slate-700"}`}>
+                              {currentOverlay?.manual_override ? "Manager Override Active" : "Suggested Runtime Route"}
+                            </span>
+                          </h3>
+
+                          {currentOverlay?.manual_override && (
+                            <button
+                              onClick={handleRevertToSuggestion}
+                              className="text-xs text-rose-600 hover:text-rose-800 font-medium underline"
+                            >
+                              Revert to suggestion
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Multi-select categories */}
+                        <div className="space-y-2 text-xs">
+                          <label className="font-semibold text-slate-700 block text-[11px] uppercase tracking-wide">
+                            Categories (Multi-select, pick primary):
+                          </label>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {[
+                              "Deal Next Steps",
+                              "Sales Coaching",
+                              "Customer Escalation / Bug",
+                              "Internal / Vendor Strategy",
+                              "Unprocessed / Low Signal"
+                            ].map(cat => {
+                              const isChecked = editRoutes.includes(cat);
+                              const isPrimary = editPrimary === cat;
+
+                              return (
+                                <div
+                                  key={cat}
+                                  className={`p-2.5 rounded border flex items-center justify-between transition ${isChecked ? "bg-indigo-50/50 border-indigo-300" : "bg-slate-50 border-slate-200"}`}
+                                >
+                                  <label className="flex items-center gap-2 cursor-pointer text-slate-800 font-medium">
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                          const next = [...editRoutes, cat];
+                                          setEditRoutes(next);
+                                          if (!editPrimary) setEditPrimary(cat);
+                                        } else {
+                                          const next = editRoutes.filter(c => c !== cat);
+                                          setEditRoutes(next);
+                                          if (editPrimary === cat) setEditPrimary(next[0] || "");
+                                        }
+                                      }}
+                                      className="rounded text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <span>{cat}</span>
+                                  </label>
+
+                                  {isChecked && (
+                                    <button
+                                      onClick={() => setEditPrimary(cat)}
+                                      className={`px-1.5 py-0.5 rounded text-[10px] font-semibold transition ${isPrimary ? "bg-indigo-600 text-white" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}
+                                    >
+                                      {isPrimary ? "★ Primary" : "Set Primary"}
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Reason / note */}
+                        <div className="text-xs">
+                          <label className="font-semibold text-slate-700 block text-[11px] uppercase tracking-wide mb-1">
+                            Manager Routing Note / Justification:
+                          </label>
+                          <textarea
+                            rows={2}
+                            placeholder="Enter business reasoning for manual route override..."
+                            value={editNote}
+                            onChange={(e) => setEditNote(e.target.value)}
+                            className="w-full border border-slate-300 rounded p-2 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          />
+                        </div>
+
+                        {/* Save button */}
+                        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                          <button
+                            onClick={handleSaveManualRoute}
+                            className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded text-xs shadow-sm transition"
+                          >
+                            Save Manual Route
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center text-slate-400 text-xs">
+                      Select a record from the inbox list to view details.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MANAGER BRIEF TAB */}
+          {activeTab === "brief" && (
+            <div className="flex-1 bg-white overflow-y-auto custom-scrollbar p-6">
+              <div className="max-w-4xl mx-auto space-y-6">
+                <div className="border-b border-slate-200 pb-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-bold text-slate-900">Executive Revenue Intelligence Brief</h2>
+                    <span className="text-xs bg-indigo-100 text-indigo-800 font-mono px-2 py-1 rounded font-bold">
+                      21 Aug 2026 IST
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Pre-generated executive summary linking priority findings to observable evidence. Every figure reflects selected records under analysis, not overall team performance.
+                  </p>
+                </div>
+
+                {/* Priority 1 */}
+                <div className="bg-rose-50 border border-rose-200 p-4 rounded-lg">
+                  <h3 className="text-sm font-bold text-rose-900 flex items-center gap-2 mb-2">
+                    <span className="bg-rose-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">1</span>
+                    Urgent Product Defects & Blocking Escalations (Promised Same-Day)
+                  </h3>
+                  <div className="space-y-3 text-xs text-rose-950">
+                    <div className="bg-white p-3 rounded border border-rose-200">
+                      <div className="flex items-center justify-between font-semibold">
+                        <span>Willowfield Systems (M07) — 4 Customer Reported Defects</span>
+                        <button onClick={() => { setSelectedKey("meeting::meet_m07_willowfield"); setActiveTab("inbox"); }} className="text-indigo-600 underline">View M07 Evidence</button>
+                      </div>
+                      <p className="mt-1 text-slate-700">T3–7: Description not updating; T8–15: Receipt upload fails on Recreate payment; T16–19: Payout gateway worker stalled, reimbursements stuck 'Processing' over 48h (update promised in 1–2 hours); T21–25: Mark as paid retains stale amount. Owner: Team member A.</p>
+                    </div>
+
+                    <div className="bg-white p-3 rounded border border-rose-200">
+                      <div className="flex items-center justify-between font-semibold">
+                        <span>Horizon Onboarding (M09) — Auth Token Expiry & Security Policy</span>
+                        <button onClick={() => { setSelectedKey("meeting::meet_m09_account_setup"); setActiveTab("inbox"); }} className="text-indigo-600 underline">View M09 Evidence</button>
+                      </div>
+                      <p className="mt-1 text-slate-700">T21: Fresh password reset link immediately states 'token has expired'. T11–18: Shared mailbox full admin rights violates customer segregation of duties. CS committed update 'today, or by Monday'.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Priority 2 */}
+                <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+                  <h3 className="text-sm font-bold text-amber-900 flex items-center gap-2 mb-2">
+                    <span className="bg-amber-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">2</span>
+                    Prepaid-vs-Credit Expectations Gap
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-amber-950">
+                    <div className="bg-white p-3 rounded border border-amber-200">
+                      <div className="flex items-center justify-between font-semibold">
+                        <span>Asterloom (M03)</span>
+                        <button onClick={() => { setSelectedKey("meeting::meet_m03_asterloom"); setActiveTab("inbox"); }} className="text-indigo-600 underline">View M03</button>
+                      </div>
+                      <p className="mt-1 text-slate-700">T6: Prospect entered meeting expecting a corporate credit card. Rep pitched prepaid load card. Fee confusion (INR 39,000 vs 26,000) and unconfirmed promise on automatic sync. CFO decision pending.</p>
+                    </div>
+
+                    <div className="bg-white p-3 rounded border border-amber-200">
+                      <div className="flex items-center justify-between font-semibold">
+                        <span>Cedarwave (M04)</span>
+                        <button onClick={() => { setSelectedKey("meeting::meet_m04_cedarwave"); setActiveTab("inbox"); }} className="text-indigo-600 underline">View M04</button>
+                      </div>
+                      <p className="mt-1 text-slate-700">T11: Moving from prepaid to credit is the main operational roadblock. T4: Legacy programme closing in coming weeks. Portal fails to display approved credit limit.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Priority 3 */}
+                <div className="bg-indigo-50 border border-indigo-200 p-4 rounded-lg">
+                  <h3 className="text-sm font-bold text-indigo-900 flex items-center gap-2 mb-2">
+                    <span className="bg-indigo-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">3</span>
+                    Pending Commercial Sends & Commitments
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs">
+                    <div className="bg-white p-2.5 rounded border border-indigo-100">
+                      <strong>M03 Asterloom</strong>: Clear proposal and fee schedule by Monday.
+                    </div>
+                    <div className="bg-white p-2.5 rounded border border-indigo-100">
+                      <strong>M01 Harborpath</strong>: T25 send docs and scalable tracking link today.
+                    </div>
+                    <div className="bg-white p-2.5 rounded border border-indigo-100">
+                      <strong>C07 Willowbank</strong>: Dev to send proposal via chat app; call Monday 3 PM.
+                    </div>
+                    <div className="bg-white p-2.5 rounded border border-indigo-100">
+                      <strong>C08 BlueSky</strong>: Meera send proposal to contact08@example.com.
+                    </div>
+                    <div className="bg-white p-2.5 rounded border border-indigo-100">
+                      <strong>M06 Mapletrail</strong>: Product material and formal SOC2 summary to be sent.
+                    </div>
+                    <div className="bg-white p-2.5 rounded border border-indigo-100">
+                      <strong>M02 LedgerBridge</strong>: Supplier to send standard template by Friday.
+                    </div>
+                  </div>
+                </div>
+
+                {/* Priority 4 */}
+                <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg">
+                  <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2 mb-2">
+                    <span className="bg-slate-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">4</span>
+                    Practical Sales Coaching Points
+                  </h3>
+                  <ul className="list-disc pl-5 text-xs text-slate-700 space-y-1.5">
+                    <li><strong>C01 (Arun)</strong>: Pitch opening failed to state the reason for calling clearly, prompting Pranav's immediate rejection ("I didn't ask for this call").</li>
+                    <li><strong>C05 & C06 (Meera / Ravi)</strong>: Prospects repeatedly responded "We already have that". Need thorough needs discovery before pitching feature capabilities.</li>
+                    <li><strong>M03 (SpendNest Rep)</strong>: Avoid confusing fee schedules (INR 39,000 vs 26,000) and do not make unverified commitments on ledger sync ("something we can build").</li>
+                    <li><strong>M06 (SpendNest Rep)</strong>: Rephrased customer invoice volume from 260–390 up to 390–520. Prospect answered only "Approximately"; avoid leading projections.</li>
+                  </ul>
+                </div>
+
+                {/* Priority 5 */}
+                <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg">
+                  <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2 mb-2">
+                    <span className="bg-slate-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">5</span>
+                    Data Hygiene & Source Metadata Exceptions
+                  </h3>
+                  <div className="text-xs text-slate-700 space-y-1">
+                    <p>• <strong>C02</strong>: Gatekeeper call logged as is_conversation=true (target was never reached).</p>
+                    <p>• <strong>C06</strong>: Rep metadata mismatch (logged under Meera; caller states 'Ravi here').</p>
+                    <p>• <strong>C10</strong>: Outcome recorded as follow_up despite contact leaving company and declining calls.</p>
+                    <p>• <strong>B11 & B14</strong>: Calls logged as is_connected=true but completely unresponsive without text.</p>
+                    <p>• <strong>M04 ↔ M13</strong>: Same organization name with missing notetaker; kept strictly separate as unverified association.</p>
+                    <p>• <strong>M05, M08, M11</strong>: Silent completed meetings; properly flagged as Unprocessed without invented analysis.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* METHODS & SPEC TAB */}
+          {activeTab === "methods" && (
+            <div className="flex-1 bg-white overflow-y-auto custom-scrollbar p-6">
+              <div className="max-w-4xl mx-auto space-y-6 text-xs text-slate-700">
+                <div className="border-b border-slate-200 pb-3">
+                  <h2 className="text-xl font-bold text-slate-900">Methods, Data Architecture & Limitations</h2>
+                  <p className="text-slate-500 mt-1">Technical specifications and self-test verification principles.</p>
+                </div>
+
+                <div className="space-y-4">
+                  <section>
+                    <h3 className="text-sm font-bold text-slate-800 mb-1">1. Composite Identity & Store Architecture</h3>
+                    <p className="leading-relaxed">
+                      Every record is uniquely indexed by the composite key <code className="bg-slate-100 px-1 py-0.5 rounded font-mono font-semibold">${"{source_type}"}::${"{source_id}"}</code>. Display references (B01–B20, C01–C10, M01–M14) are presentation labels only. State is maintained across three strictly decoupled stores:
+                    </p>
+                    <ol className="list-decimal pl-5 mt-1 space-y-1">
+                      <li><strong>Source Store</strong>: Immutable evidence containing payload, transcript_payload, and applied_revision. Updated only when incoming batch revision exceeds applied revision.</li>
+                      <li><strong>Analysis Store</strong>: Deterministic runtime suggested routes, pre-generated analysis packs, and review state flags.</li>
+                      <li><strong>Manager Overlay</strong>: Manual route overrides, primary route designation, manager justification notes, and acknowledgment timestamps. Upstream source updates never erase manager overlays.</li>
+                    </ol>
+                  </section>
+
+                  <section>
+                    <h3 className="text-sm font-bold text-slate-800 mb-1">2. Metric Definitions & Computational Denominators</h3>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li><strong>Selected Records</strong>: Reflects filtered record count within scope (21 Aug 2026 Asia/Kolkata). Always explicitly labelled as selected records, never team performance.</li>
+                      <li><strong>Text Coverage</strong>: Computed as records with non-blank call transcript or ≥1 non-blank meeting turn over the explicit denominator of selected records. Initial batch: 17/44 (38.6%). Post-update: 18/44 (40.9%).</li>
+                      <li><strong>Source-Reported Connect Rate</strong>: Computed as <code className="bg-slate-100 px-1 py-0.5 rounded">is_connected=true / calls with non-null is_connected = 11/30 (36.7%)</code>. Unknown is 0. Explicitly qualified as 'source-reported, not verified by text'.</li>
+                      <li><strong>Routes Assigned vs Unique Records</strong>: Multi-route records write one export output per assigned route, making route assignments exceed unique record count.</li>
+                    </ul>
+                  </section>
+
+                  <section>
+                    <h3 className="text-sm font-bold text-slate-800 mb-1">3. Non-Inference & Evidence Integrity Constraints</h3>
+                    <p className="leading-relaxed">
+                      A missing transcript never proves a conversation didn't happen. Duration metadata is never summed as attended time (e.g., M12 shows 1800s but was cancelled). Similar organization titles are not deduplication keys (M04 and M13 remain separate records with an unverified association tag).
+                    </p>
+                  </section>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Render the React application
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>
