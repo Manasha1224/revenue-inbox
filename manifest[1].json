@@ -1,0 +1,716 @@
+{
+  "generated_at": "2026-10-23T04:47:08.895Z",
+  "scope": "2026-08-21 (Asia/Kolkata)",
+  "record_count": 44,
+  "records": [
+    {
+      "source_type": "call",
+      "source_id": "call_c01_harborlight",
+      "record_ref": "C01",
+      "applied_revision": 1,
+      "routes": "Sales Coaching*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/coaching/C01_borlight_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_c02_gatekeeper",
+      "record_ref": "C02",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/C02_tekeeper_call.md"
+      ],
+      "review_state": "needs_review",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_c03_milan",
+      "record_ref": "C03",
+      "applied_revision": 1,
+      "routes": "Deal Next Steps*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/deals/C03_03_milan_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_c04_lanternpath",
+      "record_ref": "C04",
+      "applied_revision": 1,
+      "routes": "Deal Next Steps*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/deals/C04_ternpath_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_c05_storeharbor",
+      "record_ref": "C05",
+      "applied_revision": 1,
+      "routes": "Deal Next Steps*, Sales Coaching",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/deals/C05_reharbor_call.md",
+        "outputs/coaching/C05_reharbor_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_c06_vanguard",
+      "record_ref": "C06",
+      "applied_revision": 1,
+      "routes": "Sales Coaching*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/coaching/C06_vanguard_call.md"
+      ],
+      "review_state": "needs_review",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_c07_willowbank",
+      "record_ref": "C07",
+      "applied_revision": 1,
+      "routes": "Deal Next Steps*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/deals/C07_llowbank_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_c08_raghav",
+      "record_ref": "C08",
+      "applied_revision": 1,
+      "routes": "Deal Next Steps*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/deals/C08_8_raghav_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_c09_vedant",
+      "record_ref": "C09",
+      "applied_revision": 1,
+      "routes": "Deal Next Steps*, Sales Coaching",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/deals/C09_9_vedant_call.md",
+        "outputs/coaching/C09_9_vedant_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_c10_aniket",
+      "record_ref": "C10",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/C10_0_aniket_call.md"
+      ],
+      "review_state": "needs_review",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b01_bg",
+      "record_ref": "B01",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B01_l_b01_bg_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b02_bg",
+      "record_ref": "B02",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B02_l_b02_bg_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b03_bg",
+      "record_ref": "B03",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B03_l_b03_bg_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b04_bg",
+      "record_ref": "B04",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B04_l_b04_bg_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b05_bg",
+      "record_ref": "B05",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B05_l_b05_bg_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b06_bg",
+      "record_ref": "B06",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B06_l_b06_bg_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b07_bg",
+      "record_ref": "B07",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B07_l_b07_bg_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b08_bg",
+      "record_ref": "B08",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B08_l_b08_bg_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b09_bg",
+      "record_ref": "B09",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B09_l_b09_bg_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b10_bg",
+      "record_ref": "B10",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B10_l_b10_bg_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b11_bg",
+      "record_ref": "B11",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B11_l_b11_bg_call.md"
+      ],
+      "review_state": "needs_review",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b12_bg",
+      "record_ref": "B12",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B12_l_b12_bg_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b13_bg",
+      "record_ref": "B13",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B13_l_b13_bg_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b14_bg",
+      "record_ref": "B14",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B14_l_b14_bg_call.md"
+      ],
+      "review_state": "needs_review",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b15_bg",
+      "record_ref": "B15",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B15_l_b15_bg_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b16_bg",
+      "record_ref": "B16",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B16_l_b16_bg_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b17_bg",
+      "record_ref": "B17",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B17_l_b17_bg_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b18_bg",
+      "record_ref": "B18",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B18_l_b18_bg_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b19_bg",
+      "record_ref": "B19",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B19_l_b19_bg_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "call",
+      "source_id": "call_b20_bg",
+      "record_ref": "B20",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/B20_l_b20_bg_call.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "meeting",
+      "source_id": "meet_m01_harborpath",
+      "record_ref": "M01",
+      "applied_revision": 1,
+      "routes": "Deal Next Steps*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/deals/M01_rborpath_meeting.md"
+      ],
+      "review_state": "needs_review",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "meeting",
+      "source_id": "meet_m02_ledgerbridge",
+      "record_ref": "M02",
+      "applied_revision": 1,
+      "routes": "Internal / Vendor Strategy*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/vendor/M02_erbridge_meeting.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "meeting",
+      "source_id": "meet_m03_asterloom",
+      "record_ref": "M03",
+      "applied_revision": 1,
+      "routes": "Deal Next Steps*, Sales Coaching",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/deals/M03_sterloom_meeting.md",
+        "outputs/coaching/M03_sterloom_meeting.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "meeting",
+      "source_id": "meet_m04_cedarwave",
+      "record_ref": "M04",
+      "applied_revision": 1,
+      "routes": "Customer Escalation / Bug*, Deal Next Steps",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/support/M04_edarwave_meeting.md",
+        "outputs/deals/M04_edarwave_meeting.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "meeting",
+      "source_id": "meet_m05_silent_call",
+      "record_ref": "M05",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/M05_ent_call_meeting.md"
+      ],
+      "review_state": "needs_review",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "meeting",
+      "source_id": "meet_m06_mapletrail",
+      "record_ref": "M06",
+      "applied_revision": 1,
+      "routes": "Deal Next Steps*, Sales Coaching",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/deals/M06_pletrail_meeting.md",
+        "outputs/coaching/M06_pletrail_meeting.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "meeting",
+      "source_id": "meet_m07_willowfield",
+      "record_ref": "M07",
+      "applied_revision": 2,
+      "routes": "Customer Escalation / Bug*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/support/M07_lowfield_meeting.md"
+      ],
+      "review_state": "needs_review",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 2,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "meeting",
+      "source_id": "meet_m08_empty_bridge",
+      "record_ref": "M08",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/M08_y_bridge_meeting.md"
+      ],
+      "review_state": "needs_review",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "meeting",
+      "source_id": "meet_m09_account_setup",
+      "record_ref": "M09",
+      "applied_revision": 1,
+      "routes": "Customer Escalation / Bug*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/support/M09_nt_setup_meeting.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "meeting",
+      "source_id": "meet_m10_billing_walkthrough",
+      "record_ref": "M10",
+      "applied_revision": 1,
+      "routes": "Internal / Vendor Strategy*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/vendor/M10_kthrough_meeting.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "meeting",
+      "source_id": "meet_m11_silent_quarterly",
+      "record_ref": "M11",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/M11_uarterly_meeting.md"
+      ],
+      "review_state": "needs_review",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "meeting",
+      "source_id": "meet_m12_cancelled_meeting",
+      "record_ref": "M12",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/M12__meeting_meeting.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "meeting",
+      "source_id": "meet_m13_cedarwave_notetaker",
+      "record_ref": "M13",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/M13_otetaker_meeting.md"
+      ],
+      "review_state": "needs_review",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    },
+    {
+      "source_type": "meeting",
+      "source_id": "meet_m14_cancelled_exec",
+      "record_ref": "M14",
+      "applied_revision": 1,
+      "routes": "Unprocessed / Low Signal*",
+      "route_source": "suggested",
+      "manual_override": false,
+      "output_paths": [
+        "outputs/unprocessed/M14_led_exec_meeting.md"
+      ],
+      "review_state": "clear",
+      "analysis_freshness": "current",
+      "analysis_based_on_revision": 1,
+      "superseded_paths": []
+    }
+  ]
+}
